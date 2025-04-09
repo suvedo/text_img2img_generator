@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import random
 import string
+from requests_toolbelt import MultipartEncoder
 
 prompt =  """Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, 
 high quality, sharp focus,
@@ -12,6 +13,34 @@ high quality, sharp focus,
 def generate_random_str(length=10):
     characters = string.ascii_lowercase + string.digits  # 定义字符集[8](@ref)
     return ''.join(random.choices(characters, k=length))  # 随机选择字符[4](@ref)
+
+
+def upload_image(url, file_path, upload_id):
+    """
+    上传图片到指定URL
+    :param url: 上传的URL
+    :param file_path: 图片文件路径
+    :return: 响应结果
+    """
+    boundary = "--WebKitFormBoundaryKo9vIpRbSDXW4PKV"
+
+    # 构造MultipartEncoder对象
+    multipart_data = MultipartEncoder(
+        fields={
+            "upload_id": upload_id,  # 文本字段直接赋值
+            "file": (file_path, open(file_path, 'rb'), 'image/jpeg')
+        },
+        boundary=boundary  # 显式指定boundary
+    )
+
+    headers = {
+        "Content-Type": multipart_data.content_type,
+        # "User-Agent": "Python/Requests"
+    }
+
+    response = requests.post(url, data=multipart_data, headers=headers)
+
+    return response
 
 
 def http_post(url, payload):
@@ -83,32 +112,25 @@ def download_image(url: str, save_path: str = "downloaded_image.jpg"):
 # 使用示例
 if __name__ == "__main__":
 
+    file_path = "./data/input_images/test_ip2.png"
+
+    upload_id = generate_random_str(11)
+    url = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id
+    res = upload_image(url, file_path, upload_id)
+    print("图片上传结果:", res, res.json())
+    path = res.json()[0] if res.status_code == 200 else None
+    print(f"上传的图片路径:{path}")
+
+    if not path:
+        print("上传图片失败")
+        exit(1)
+
+
     # session_hash = "jmrk72fki1" 
     session_hash = generate_random_str(10)
     print("session_hash:", session_hash)
 
     post_url = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/queue/join?__theme=system"
-    # payload = {
-    #     "event_data": None,
-    #     "fn_index": 5,
-    #     "session_hash": session_hash,
-    #     "trigger_id": 30,
-    #     "data": [
-    #         {
-    #             "meta" : {"_type": "gradio.FileData"},
-    #             "mime_type": "image/jpeg",
-    #             "orig_name": "test_ip.jpg",
-    #             "path" : "/tmp/gradio/320dc4e421d97dc846504e24c297899c30e20f58b4205de1c3e9667696fa980f/test_ip.jpg",
-    #             "size" : 683684,
-    #             "url": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/file=/tmp/gradio/320dc4e421d97dc846504e24c297899c30e20f58b4205de1c3e9667696fa980f/test_ip.jpg"
-    #         },
-    #         None,
-    #         prompt,
-    #         0,
-    #         True
-    #     ]
-    # }
-
     payload = {
         "event_data": None,
         "fn_index": 5,
@@ -118,10 +140,10 @@ if __name__ == "__main__":
             {
                 "meta" : {"_type": "gradio.FileData"},
                 "mime_type": "image/jpeg",
-                "orig_name": "test_ip.jpg",
-                "path" : "/tmp/gradio/320dc4e421d97dc846504e24c297899c30e20f58b4205de1c3e9667696fa980f/test_ip.jpg",
+                "orig_name": file_path.split("/")[-1],
+                "path" : path,
                 "size" : 683684,
-                "url": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/file=/tmp/gradio/320dc4e421d97dc846504e24c297899c30e20f58b4205de1c3e9667696fa980f/test_ip.jpg"
+                "url": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/file="+path
             },
             None,
             prompt,
@@ -129,6 +151,27 @@ if __name__ == "__main__":
             True
         ]
     }
+
+    # payload = {
+    #     "event_data": None,
+    #     "fn_index": 5,
+    #     "session_hash": session_hash,
+    #     "trigger_id": 30,
+    #     "data": [
+    #         {
+    #             # "meta" : {"_type": "gradio.FileData"},
+    #             "mime_type": "image/jpeg",
+    #             "orig_name": "test_ip.jpg",
+    #             # "path" : "/image/test_ip.jpg",
+    #             "size" : 683684,
+    #             "url": "http://45.76.4.80:8000/image/test_ip.jpg"
+    #         },
+    #         None,
+    #         prompt,
+    #         0,
+    #         True
+    #     ]
+    # }
 
     post_res = http_post(post_url, payload)
     print("POST请求结果:", post_res)
@@ -143,6 +186,7 @@ if __name__ == "__main__":
                 data = json.loads(chunk.split("data:")[1].strip())
                 if data:
                     if data.get("event_id", None) == event_id \
+                        and data.get("success", False) \
                         and data.get("msg", None) == "process_completed":
                         gen_img_url = data["output"]["data"][0]
                         if gen_img_url:

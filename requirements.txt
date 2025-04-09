@@ -21,3 +21,4 @@ einops
 timm
 onnxruntime
 Flask
+requests_toolbelt
