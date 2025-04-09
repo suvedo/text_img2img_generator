@@ -34,7 +34,20 @@ def upload_image(url, file_path, upload_id):
     )
 
     headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
         "Content-Type": multipart_data.content_type,
+        "referer": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/?__theme=system",
+        "origin": "https://kwai-kolors-kolors-portrait-with-flux.hf.space",
+        "priority": "u=1, i",
+    "sec-ch-ua":'"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+    "sec-ch-ua-mobile":"?0",
+    "sec-ch-ua-platform":'"macOS"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-storage-access": "active",
         # "User-Agent": "Python/Requests"
     }
 
@@ -116,8 +129,15 @@ if __name__ == "__main__":
 
     upload_id = generate_random_str(11)
     url = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id
+
     res = upload_image(url, file_path, upload_id)
-    print("图片上传结果:", res, res.json())
+
+    res.encoding = 'utf-8'  # 手动指定编码
+    # 或直接读取二进制内容解码
+    content = res.content.decode('gbk')
+
+    print(res.request.headers)
+    print("图片上传结果:", res.text, content)
     path = res.json()[0] if res.status_code == 200 else None
     print(f"上传的图片路径:{path}")
 
