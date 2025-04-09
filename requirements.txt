@@ -20,3 +20,4 @@ gradio==4.37.2
 einops
 timm
 onnxruntime
+Flask

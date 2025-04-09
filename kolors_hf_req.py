@@ -88,6 +88,27 @@ if __name__ == "__main__":
     print("session_hash:", session_hash)
 
     post_url = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/queue/join?__theme=system"
+    # payload = {
+    #     "event_data": None,
+    #     "fn_index": 5,
+    #     "session_hash": session_hash,
+    #     "trigger_id": 30,
+    #     "data": [
+    #         {
+    #             "meta" : {"_type": "gradio.FileData"},
+    #             "mime_type": "image/jpeg",
+    #             "orig_name": "test_ip.jpg",
+    #             "path" : "/tmp/gradio/320dc4e421d97dc846504e24c297899c30e20f58b4205de1c3e9667696fa980f/test_ip.jpg",
+    #             "size" : 683684,
+    #             "url": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/file=/tmp/gradio/320dc4e421d97dc846504e24c297899c30e20f58b4205de1c3e9667696fa980f/test_ip.jpg"
+    #         },
+    #         None,
+    #         prompt,
+    #         0,
+    #         True
+    #     ]
+    # }
+
     payload = {
         "event_data": None,
         "fn_index": 5,
