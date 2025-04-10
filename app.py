@@ -1,7 +1,11 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from werkzeug.utils import secure_filename
+#from werkzeug.utils import secure_filename
+import json
+import traceback
+
+import kolors_hf_req
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -26,37 +30,99 @@ def process():
             return jsonify(success=False, message="未选择文件")
         
         # 保存原始图片
-        filename = secure_filename(file.filename)
-        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(upload_path)
-        
+        # filename = secure_filename(file.filename)
+        # upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # file.save(upload_path)
+
+        # upload image to hauggingface space
+        upload_id = kolors_hf_req.generate_random_str(11)
+        upload_hf_rsp = kolors_hf_req.upload_image_stream(app.config['KOLORS_HF_UPLOAD_IMG_URL'], file, upload_id)
+        path = upload_hf_rsp.json()[0] if upload_hf_rsp.status_code == 200 else None
+
+        if not path:
+            return jsonify(success=False, message="upload image failed")
+
         # 获取文本内容
         text_content = request.form.get('text', '')
+        if not text_content:
+            return jsonify(success=False, message="no text content provided")
         
-        ####################################
-        # 此处添加业务处理逻辑
-        # 示例：生成一个空白图片
-        from PIL import Image
-        output_filename = f"processed_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-        output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
-        Image.new('RGB', (800, 600), (255, 255, 255)).save(output_path)
-        ####################################
+        session_hash = kolors_hf_req.generate_random_str(10)
+        payload = app.config['KOLORS_HF_GEN_IMG_PAYLOAD']
+        payload["session_hash"] = session_hash
+        payload["data"][0]["orig_name"] = path.split("/")[-1]
+        payload["data"][0]["path"] = path
+        payload["data"][0]["url"] = app.config['KOLORS_HF_GEN_IMG_PAYLOAD_URL'].format(path=path)
+        payload["data"][2] = text_content
+
+        print(f"debug: payload:{payload}")
+        gen_img_rsp = kolors_hf_req.http_post(app.config['KOLORS_HF_GEN_IMG_URL'], payload)
+        gen_img_url = None
+        if gen_img_rsp:
+            event_id = gen_img_rsp.get("event_id", None)
+            if event_id:
+                stream_url = app.config['KOLORS_HF_GET_IMG_URL'].format(session_hash=session_hash)
+                chunks = kolors_hf_req.http_get_stream(stream_url)
+                for chunk in chunks:
+                    data = json.loads(chunk.split("data:")[1].strip())
+                    if data:
+                        if data.get("event_id", None) == event_id \
+                            and data.get("success", False) \
+                            and data.get("msg", None) == "process_completed":
+                            gen_img_url = data["output"]["data"][0]
+                            if gen_img_url:
+                                gen_img_url = gen_img_url["url"]
+
+
+        print(f"debug: gen_img_url:{gen_img_url}")
+        if not gen_img_url:
+            return jsonify(success=False, message="generate image failed, try it later")
+                
+        # ####################################
+        # # 此处添加业务处理逻辑
+        # # 示例：生成一个空白图片
+        # from PIL import Image
+        # output_filename = f"processed_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+        # output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
+        # Image.new('RGB', (800, 600), (255, 255, 255)).save(output_path)
+        # ####################################
         
         return jsonify(
             success=True,
-            download_url=f"/download/{output_filename}"
+            download_url=f"{gen_img_url}"
         )
         
     except Exception as e:
+        print(f"error:{traceback.format_exc()}")
         return jsonify(success=False, message=str(e))
 
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory(
-        app.config['OUTPUT_FOLDER'],
-        filename,
-        as_attachment=True
-    )
+@app.route('/download', methods=['POST'])
+def download_file():
+    # return send_from_directory(
+    #     app.config['OUTPUT_FOLDER'],
+    #     filename,
+    #     as_attachment=True
+    # )
+    try:
+        data = request.json
+        print(f"debug: data:{data}")
+        url = data['url']
+        path = kolors_hf_req.generate_random_str(12)+"_generated_image.jpg"
+        kolors_hf_req.download_image(url, os.path.join(app.config['OUTPUT_FOLDER'], path))
+        #  TODO
+        return send_from_directory(
+            app.config['OUTPUT_FOLDER'],
+            path,
+            as_attachment=True
+        )
+        if os.path.exists(os.path.join(app.config['OUTPUT_FOLDER'], path)):
+            os.remove(os.path.join(app.config['OUTPUT_FOLDER'], path))
+    except Exception as e:
+        print(f"error:{traceback.format_exc()}")
+        return "fail to download generated image"
+
+    return "finish download generated image"
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000)

@@ -9,10 +9,52 @@ prompt =  """Full body shot of young Asian face woman in sun hat and white dress
 high quality, sharp focus,
 """
 
-
 def generate_random_str(length=10):
     characters = string.ascii_lowercase + string.digits  # 定义字符集[8](@ref)
     return ''.join(random.choices(characters, k=length))  # 随机选择字符[4](@ref)
+
+
+def upload_image_stream(url, file_stream, upload_id):
+    """
+    上传图片到指定URL
+    :param url: 上传的URL
+    :param file_stream: 图片文件流
+    :return: 响应结果
+    """
+    boundary = "----WebKitFormBoundarydw2KMeqEtqkKPBBl"
+
+    # 构造MultipartEncoder对象
+    multipart_data = MultipartEncoder(
+        fields={
+            "upload_id": upload_id,  # 文本字段直接赋值
+            "files": (file_stream.filename, file_stream.stream, 'image/jpeg')  # 使用文件流
+        },
+        boundary=boundary  # 显式指定boundary
+    )
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "accept": "*/*",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Content-Type": multipart_data.content_type,#"multipart/form-data; boundary=----WebKitFormBoundaryMwvQ7IGaIpVUxmmc", #multipart_data.content_type,
+        # "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundarydw2KMeqEtqkKPBBl",
+        "referer": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/?__theme=system",
+        "origin": "https://kwai-kolors-kolors-portrait-with-flux.hf.space",
+        "priority": "u=1, i",
+        "sec-ch-ua":'"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+        "sec-ch-ua-mobile":"?0",
+        "sec-ch-ua-platform":'"macOS"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-storage-access": "active",
+        # "User-Agent": "Python/Requests"
+    }
+
+    response = requests.post(url, data=multipart_data, headers=headers)
+
+    return response
 
 
 def upload_image(url, file_path, upload_id):

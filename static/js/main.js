@@ -22,27 +22,44 @@ function handleSubmit() {
         if (data.success) {
             showDownloadSection(data.download_url);
         } else {
-            alert('处理失败：' + data.message);
+            alert('failed:' + data.message);
         }
     })
     .catch(error => {
-        alert('请求失败：' + error.message);
+        alert('failed:' + error.message);
     })
     .finally(() => toggleLoading(false));
 }
 
 function showDownloadSection(url) {
-    const downloadSection = document.getElementById('downloadSection');
-    const downloadLink = document.getElementById('downloadLink');
-    downloadLink.href = url;
-    downloadSection.style.display = 'block';
+    // const downloadSection = document.getElementById('downloadSection');
+    // const downloadLink = document.getElementById('downloadLink');
+    // downloadLink.href = url;
+    // downloadSection.style.display = 'block';
+
+    const payload = { "url": url };
+    fetch('/download', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json', // 必须与后端匹配[1,6](@ref)
+        },
+        body: JSON.stringify(payload)
+    })
+
+    // try {
+    //     const response = fetch('/download/'+url);
+    //     const data = response.json();
+    //     console.log(data.message);  // 输出: "Hello, Alice! This is..."
+    // } catch (error) {
+    //     console.error('failed:', error);
+    // }
 }
 
 function toggleLoading(loading) {
     const btn = document.querySelector('button');
     btn.innerHTML = loading ? 
-        '<span class="spinner-border spinner-border-sm" role="status"></span> 处理中...' : 
-        '提交处理';
+        '<span class="spinner-border spinner-border-sm" role="status"></span> generating...' : 
+        'generate image';
 }
 
 // 图片预览功能
