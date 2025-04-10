@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import random
 import string
-from requests_toolbelt import MultipartEncoder
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 prompt =  """Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, 
 high quality, sharp focus,
@@ -22,34 +22,40 @@ def upload_image(url, file_path, upload_id):
     :param file_path: 图片文件路径
     :return: 响应结果
     """
-    boundary = "--WebKitFormBoundaryKo9vIpRbSDXW4PKV"
+    boundary = "----WebKitFormBoundarydw2KMeqEtqkKPBBl"
 
     # 构造MultipartEncoder对象
     multipart_data = MultipartEncoder(
         fields={
             "upload_id": upload_id,  # 文本字段直接赋值
-            "file": (file_path, open(file_path, 'rb'), 'image/jpeg')
+            "files": (file_path, open(file_path, 'rb'), 'image/jpeg')
         },
         boundary=boundary  # 显式指定boundary
     )
 
+    print(f"multipart_data: {multipart_data.fields}")
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
         "Accept-Encoding": "gzip, deflate, br, zstd",
+        "accept": "*/*",
         "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
-        "Content-Type": multipart_data.content_type,
+        "Content-Type": multipart_data.content_type,#"multipart/form-data; boundary=----WebKitFormBoundaryMwvQ7IGaIpVUxmmc", #multipart_data.content_type,
+        # "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundarydw2KMeqEtqkKPBBl",
         "referer": "https://kwai-kolors-kolors-portrait-with-flux.hf.space/?__theme=system",
         "origin": "https://kwai-kolors-kolors-portrait-with-flux.hf.space",
         "priority": "u=1, i",
-    "sec-ch-ua":'"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
-    "sec-ch-ua-mobile":"?0",
-    "sec-ch-ua-platform":'"macOS"',
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-origin",
-    "sec-fetch-storage-access": "active",
+        "sec-ch-ua":'"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+        "sec-ch-ua-mobile":"?0",
+        "sec-ch-ua-platform":'"macOS"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-storage-access": "active",
         # "User-Agent": "Python/Requests"
     }
+
+    print(f"debug:multipart_data: {multipart_data}")
 
     response = requests.post(url, data=multipart_data, headers=headers)
 
@@ -125,6 +131,7 @@ def download_image(url: str, save_path: str = "downloaded_image.jpg"):
 # 使用示例
 if __name__ == "__main__":
 
+    # file_path = "./data/input_images/test_ip.jpg"
     file_path = "./data/input_images/test_ip2.png"
 
     upload_id = generate_random_str(11)
@@ -137,7 +144,7 @@ if __name__ == "__main__":
     content = res.content.decode('gbk')
 
     print(res.request.headers)
-    print("图片上传结果:", res.text, content)
+    print("图片上传结果:", res.status_code, content)
     path = res.json()[0] if res.status_code == 200 else None
     print(f"上传的图片路径:{path}")
 
