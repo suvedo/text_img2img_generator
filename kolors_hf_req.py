@@ -5,6 +5,8 @@ import random
 import string
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from log_util import logger
+
 prompt =  """Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, 
 high quality, sharp focus,
 """
@@ -14,7 +16,7 @@ def generate_random_str(length=10):
     return ''.join(random.choices(characters, k=length))  # 随机选择字符[4](@ref)
 
 
-def upload_image_stream(url, file_stream, upload_id):
+def upload_image_stream(request_id, url, file_stream, upload_id):
     """
     上传图片到指定URL
     :param url: 上传的URL
@@ -57,7 +59,7 @@ def upload_image_stream(url, file_stream, upload_id):
     return response
 
 
-def upload_image(url, file_path, upload_id):
+def upload_image(request_id, url, file_path, upload_id):
     """
     上传图片到指定URL
     :param url: 上传的URL
@@ -75,7 +77,7 @@ def upload_image(url, file_path, upload_id):
         boundary=boundary  # 显式指定boundary
     )
 
-    print(f"multipart_data: {multipart_data.fields}")
+    logger.info(f"request_id:{request_id}, multipart_data: {multipart_data.fields}")
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
@@ -97,14 +99,14 @@ def upload_image(url, file_path, upload_id):
         # "User-Agent": "Python/Requests"
     }
 
-    print(f"debug:multipart_data: {multipart_data}")
+    logger.info(f"request_id:{request_id}, multipart_data: {multipart_data}")
 
     response = requests.post(url, data=multipart_data, headers=headers)
 
     return response
 
 
-def http_post(url, payload):
+def http_post(request_id, url, payload):
     """
     发送HTTP POST请求
     :param url: 请求的URL
@@ -116,10 +118,10 @@ def http_post(url, payload):
         response.raise_for_status()  # 检查响应状态
         return response.json()
     except requests.RequestException as e:
-        print(f"HTTP请求失败: {str(e)}")
+        logger.error(f"request_id:{request_id}, HTTP请求失败: {str(e)}")
         return None
     
-def http_get_stream(url, max_chunks=30):
+def http_get_stream(request_id, url, max_chunks=30):
     """
     发送HTTP GET请求并以流式方式接收数据
     :param url: 请求的URL
@@ -133,12 +135,12 @@ def http_get_stream(url, max_chunks=30):
                 if chunk:  # 过滤空心跳包
                     chunk = chunk.decode()
                     chunks.append(chunk)
-                    print("http stream 收到数据块:", chunk)
+                    logger.info("request_id:{request_id}, http stream 收到数据块:", chunk)
                     if len(chunks) >= max_chunks:
-                        print("http stream 达到最大数据块数，停止接收")
+                        logger.info("request_id:{request_id}, http stream 达到最大数据块数，停止接收")
                         break
         except requests.exceptions.ChunkedEncodingError:
-            print("连接中断，尝试重连...")
+            logger.info("request_id:{request_id}, 连接中断，尝试重连...")
 
     return chunks
 
@@ -162,12 +164,12 @@ def download_image(url: str, save_path: str = "downloaded_image.jpg"):
         with open(save_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
-        print(f"图片已保存至：{save_path}")
+        logger.info(f"图片已保存至：{save_path}")
         
     except requests.exceptions.RequestException as e:
-        print(f"下载失败：{str(e)}")
+        logger.error(f"下载失败：{str(e)}")
     except IOError as e:
-        print(f"文件写入错误：{str(e)}")
+        logger.error(f"文件写入错误：{str(e)}")
 
 
 # 使用示例

@@ -6,6 +6,7 @@ import json
 import traceback
 
 import kolors_hf_req
+from log_util import logger
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -21,6 +22,8 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     try:
+        request_id = kolors_hf_req.generate_random_str(16)
+        logger.info(f"got request, request_id:{request_id}")
         # 处理图片上传
         if 'image' not in request.files:
             return jsonify(success=False, message="未上传图片")
@@ -36,7 +39,7 @@ def process():
 
         # upload image to hauggingface space
         upload_id = kolors_hf_req.generate_random_str(11)
-        upload_hf_rsp = kolors_hf_req.upload_image_stream(app.config['KOLORS_HF_UPLOAD_IMG_URL'], file, upload_id)
+        upload_hf_rsp = kolors_hf_req.upload_image_stream(request_id, app.config['KOLORS_HF_UPLOAD_IMG_URL'], file, upload_id)
         path = upload_hf_rsp.json()[0] if upload_hf_rsp.status_code == 200 else None
 
         if not path:
@@ -47,6 +50,8 @@ def process():
         if not text_content:
             return jsonify(success=False, message="no text content provided")
         
+        logger.info(f"request_id:{request_id}, file_name:{file.filename}, text_content:{text_content}")
+        
         session_hash = kolors_hf_req.generate_random_str(10)
         payload = app.config['KOLORS_HF_GEN_IMG_PAYLOAD']
         payload["session_hash"] = session_hash
@@ -55,14 +60,14 @@ def process():
         payload["data"][0]["url"] = app.config['KOLORS_HF_GEN_IMG_PAYLOAD_URL'].format(path=path)
         payload["data"][2] = text_content
 
-        print(f"debug: payload:{payload}")
-        gen_img_rsp = kolors_hf_req.http_post(app.config['KOLORS_HF_GEN_IMG_URL'], payload)
+        logger.info(f"request_id:{request_id}, payload:{payload}")
+        gen_img_rsp = kolors_hf_req.http_post(request_id, app.config['KOLORS_HF_GEN_IMG_URL'], payload)
         gen_img_url = None
         if gen_img_rsp:
             event_id = gen_img_rsp.get("event_id", None)
             if event_id:
                 stream_url = app.config['KOLORS_HF_GET_IMG_URL'].format(session_hash=session_hash)
-                chunks = kolors_hf_req.http_get_stream(stream_url)
+                chunks = kolors_hf_req.http_get_stream(request_id, stream_url)
                 for chunk in chunks:
                     data = json.loads(chunk.split("data:")[1].strip())
                     if data:
@@ -74,7 +79,7 @@ def process():
                                 gen_img_url = gen_img_url["url"]
 
 
-        print(f"debug: gen_img_url:{gen_img_url}")
+        logger.info(f"request_id:{request_id}, gen_img_url:{gen_img_url}")
         if not gen_img_url:
             return jsonify(success=False, message="generate image failed, try it later")
                 
@@ -93,7 +98,7 @@ def process():
         )
         
     except Exception as e:
-        print(f"error:{traceback.format_exc()}")
+        logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
         return jsonify(success=False, message=str(e))
 
 @app.route('/download', methods=['POST'])
@@ -105,14 +110,13 @@ def download_file_from_hf():
     # )
     try:
         data = request.json
-        print(f"debug: data:{data}")
         url = data['url']
         path = kolors_hf_req.generate_random_str(12)+"_generated_image.jpg"
         kolors_hf_req.download_image(url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
         
         return jsonify(success=True, img_url=os.path.join(app.config['OUTPUT_FOLDER'], path))
     except Exception as e:
-        print(f"error:{traceback.format_exc()}")
+        logger.error(f"error:{traceback.format_exc()}")
         return jsonify(success=False, img_url="")
 
 
