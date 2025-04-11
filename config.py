@@ -3,8 +3,8 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # 文件上传配置
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-OUTPUT_FOLDER = os.path.join(BASE_DIR, 'outputs')
+UPLOAD_FOLDER = 'uploads' #os.path.join(BASE_DIR, 'uploads')
+OUTPUT_FOLDER = 'static/outputs' #os.path.join(BASE_DIR, 'static/outputs')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 
 # Flask配置

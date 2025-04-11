@@ -10,45 +10,76 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Image Factory</h1>
-        
-        <!-- 图片上传区域 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <!-- 新增包裹标题和上传控件的父容器 -->
-                <div class="title-upload-container" style="display: flex; align-items: center; gap: 15px;">
-                    <h5 class="card-title" style="margin: 0; white-space: nowrap;">1. upload your image</h5>
-                    <div class="custom-file-upload">
-                        <input type="file" id="imageUpload" accept="image/*" class="form-control">
-                        <label for="imageUpload">click to upload</label>
+        <div class="container mt-3">
+            <p class="text-center text-white bg-primary p-3 rounded shadow">
+                <strong>Welcome to Image Factory! You can upload your image and then generate your own image with the prompt you input.</strong>
+            </p>
+        </div>
+
+        <div class="row mb-4">
+            <!-- 图片上传区域 -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="title-upload-container" style="display: flex; align-items: center; gap: 15px;">
+                            <h5 class="card-title" style="margin: 0; white-space: nowrap;">upload your image</h5>
+                            <div class="custom-file-upload">
+                                <input type="file" id="imageUpload" accept="image/*" class="form-control">
+                                <label for="imageUpload">click to upload</label>
+                            </div>
+                        </div>
+                        <div class="preview-area mt-3" id="preview"></div>
                     </div>
                 </div>
-                <div class="preview-area mt-3" id="preview"></div>
+            </div>
+        
+            <!-- 图片生成预览区域 -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">generated image preview</h5>
+                        <div class="generated-preview-area mt-3" id="generatedPreview" style="text-align: center;">
+                            <p class="text-muted">Your generated image will appear here.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 文本输入区域 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">2. input your prompt</h5>
-                <textarea id="textInput" class="form-control" rows="5"></textarea>
+        <div class="row mb-4">
+            <!-- 文本输入区域 -->
+            <div class="col-md-6">
+                <div class="card mb-4" style="height: 100%;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Input your prompt</h5>
+                        <textarea id="textInput" class="form-control flex-grow-1" rows="5" style="resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Prompt 模板区域 -->
+            <div class="col-md-6">
+                <div class="card mb-4" style="height: 100%;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">prompt templates</h5>
+                        <ul class="list-group flex-grow-1" style="overflow-y: auto;">
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A beautiful sunset over the mountains</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A futuristic cityscape at night</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A serene beach with crystal clear water</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A beautiful girl reading book, high quality.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
+
+        
 
         <!-- 操作按钮 -->
         <div class="d-grid gap-2">
             <button class="btn btn-primary btn-lg" onclick="handleSubmit()">generate image</button>
         </div>
 
-        <!-- 下载区域 -->
-        <!-- <div id="downloadSection" class="mt-4" style="display: none;">
-            <hr>
-            <h4 class="text-center">finish！</h4>
-            <div class="d-grid gap-2 col-6 mx-auto">
-                <a id="downloadLink" class="btn btn-success">
-                    <i class="bi bi-download"></i> download image
-                </a>
-            </div>
-        </div> -->
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

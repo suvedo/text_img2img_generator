@@ -11,8 +11,8 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 # 确保上传和输出目录存在
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+os.makedirs(os.path.join(app.config['BASE_DIR'], app.config['UPLOAD_FOLDER']), exist_ok=True)
+os.makedirs(os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER']), exist_ok=True)
 
 @app.route('/')
 def index():
@@ -97,7 +97,7 @@ def process():
         return jsonify(success=False, message=str(e))
 
 @app.route('/download', methods=['POST'])
-def download_file():
+def download_file_from_hf():
     # return send_from_directory(
     #     app.config['OUTPUT_FOLDER'],
     #     filename,
@@ -108,20 +108,12 @@ def download_file():
         print(f"debug: data:{data}")
         url = data['url']
         path = kolors_hf_req.generate_random_str(12)+"_generated_image.jpg"
-        kolors_hf_req.download_image(url, os.path.join(app.config['OUTPUT_FOLDER'], path))
-        #  TODO
-        return send_from_directory(
-            app.config['OUTPUT_FOLDER'],
-            path,
-            as_attachment=True
-        )
-        if os.path.exists(os.path.join(app.config['OUTPUT_FOLDER'], path)):
-            os.remove(os.path.join(app.config['OUTPUT_FOLDER'], path))
+        kolors_hf_req.download_image(url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
+        
+        return jsonify(success=True, img_url=os.path.join(app.config['OUTPUT_FOLDER'], path))
     except Exception as e:
         print(f"error:{traceback.format_exc()}")
-        return "fail to download generated image"
-
-    return "finish download generated image"
+        return jsonify(success=False, img_url="")
 
 
 if __name__ == '__main__':
