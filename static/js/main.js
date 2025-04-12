@@ -20,8 +20,8 @@ function handleSubmit() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showGeneratedImage(data.img_path)
-            console.info('finish generating image');
+            showGeneratedImage(data.img_path);
+            // console.info('finish generating image');
         } else {
             alert('failed:' + data.message);
         }

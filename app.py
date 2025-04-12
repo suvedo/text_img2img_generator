@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 #from werkzeug.utils import secure_filename
 import json
 import traceback
+import random
 
 import kolors_hf_req
 from log_util import logger
@@ -59,6 +60,8 @@ def process():
         payload["data"][0]["path"] = path
         payload["data"][0]["url"] = app.config['KOLORS_HF_GEN_IMG_PAYLOAD_URL'].format(path=path)
         payload["data"][2] = text_content
+        seed = random.randint(0, 999999)
+        payload["data"][3] = seed
 
         logger.info(f"request_id:{request_id}, payload:{payload}")
         gen_img_rsp = kolors_hf_req.http_post(request_id, app.config['KOLORS_HF_GEN_IMG_URL'], payload)

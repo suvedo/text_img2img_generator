@@ -31,7 +31,7 @@ KOLORS_HF_GEN_IMG_PAYLOAD = {
         None,
         "",
         0,
-        True
+        False
     ]
 }
 KOLORS_HF_GEN_IMG_PAYLOAD_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/file={path}"
