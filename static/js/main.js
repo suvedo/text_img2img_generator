@@ -20,7 +20,8 @@ function handleSubmit() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            downLoadImageFromHf(data.download_url);
+            showGeneratedImage(data.img_path)
+            console.info('finish generating image');
         } else {
             alert('failed:' + data.message);
         }
@@ -45,37 +46,37 @@ function showGeneratedImage(path) {
     generatedPreview.appendChild(img);
 }
 
-function downLoadImageFromHf(url) {
-    // const downloadSection = document.getElementById('downloadSection');
-    // const downloadLink = document.getElementById('downloadLink');
-    // downloadLink.href = url;
-    // downloadSection.style.display = 'block';
+// function downLoadImageFromHf(url) {
+//     // const downloadSection = document.getElementById('downloadSection');
+//     // const downloadLink = document.getElementById('downloadLink');
+//     // downloadLink.href = url;
+//     // downloadSection.style.display = 'block';
 
-    const payload = { "url": url };
-    fetch('/download', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json', // 必须与后端匹配[1,6](@ref)
-        },
-        body: JSON.stringify(payload)
-    }).then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Image downloaded successfully:', data.img_url);
-            showGeneratedImage(data.img_url)
-        } else {
-            console.error('Error:', 'failed to download image');
-        }
-    })
+//     const payload = { "url": url };
+//     fetch('/download', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json', // 必须与后端匹配[1,6](@ref)
+//         },
+//         body: JSON.stringify(payload)
+//     }).then(response => response.json())
+//     .then(data => {
+//         if (data.success) {
+//             console.log('Image downloaded successfully:', data.img_url);
+//             showGeneratedImage(data.img_url)
+//         } else {
+//             console.error('Error:', 'failed to download image');
+//         }
+//     })
 
-    // try {
-    //     const response = fetch('/download/'+url);
-    //     const data = response.json();
-    //     console.log(data.message);  // 输出: "Hello, Alice! This is..."
-    // } catch (error) {
-    //     console.error('failed:', error);
-    // }
-}
+//     // try {
+//     //     const response = fetch('/download/'+url);
+//     //     const data = response.json();
+//     //     console.log(data.message);  // 输出: "Hello, Alice! This is..."
+//     // } catch (error) {
+//     //     console.error('failed:', error);
+//     // }
+// }
 
 function toggleLoading(loading) {
     const btn = document.querySelector('button');

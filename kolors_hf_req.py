@@ -135,17 +135,17 @@ def http_get_stream(request_id, url, max_chunks=30):
                 if chunk:  # 过滤空心跳包
                     chunk = chunk.decode()
                     chunks.append(chunk)
-                    logger.info("request_id:{request_id}, http stream 收到数据块:", chunk)
+                    logger.info(f"request_id:{request_id}, http stream 收到数据块:{chunk}")
                     if len(chunks) >= max_chunks:
-                        logger.info("request_id:{request_id}, http stream 达到最大数据块数，停止接收")
+                        logger.info(f"request_id:{request_id}, http stream 达到最大数据块数，停止接收")
                         break
         except requests.exceptions.ChunkedEncodingError:
-            logger.info("request_id:{request_id}, 连接中断，尝试重连...")
+            logger.info(f"request_id:{request_id}, 连接中断，尝试重连...")
 
     return chunks
 
 
-def download_image(url: str, save_path: str = "downloaded_image.jpg"):
+def download_image(request_id, url: str, save_path: str = "downloaded_image.jpg"):
     """
     通过图片URL下载图片到本地
     参数：
@@ -164,12 +164,12 @@ def download_image(url: str, save_path: str = "downloaded_image.jpg"):
         with open(save_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
-        logger.info(f"图片已保存至：{save_path}")
+        logger.info(f"request_id:{request_id}, 图片已保存至：{save_path}")
         
     except requests.exceptions.RequestException as e:
-        logger.error(f"下载失败：{str(e)}")
+        logger.error(f"request_id:{request_id}, 下载失败：{str(e)}")
     except IOError as e:
-        logger.error(f"文件写入错误：{str(e)}")
+        logger.error(f"request_id:{request_id}, 文件写入错误：{str(e)}")
 
 
 # 使用示例

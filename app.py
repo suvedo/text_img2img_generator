@@ -82,42 +82,53 @@ def process():
         logger.info(f"request_id:{request_id}, gen_img_url:{gen_img_url}")
         if not gen_img_url:
             return jsonify(success=False, message="generate image failed, try it later")
-                
-        # ####################################
-        # # 此处添加业务处理逻辑
-        # # 示例：生成一个空白图片
-        # from PIL import Image
-        # output_filename = f"processed_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-        # output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
-        # Image.new('RGB', (800, 600), (255, 255, 255)).save(output_path)
-        # ####################################
+        
+        img_path = download_file_from_hf(request_id, file.filename, gen_img_url)
+        if not img_path:
+            return jsonify(success=False, message="generate image failed, try it later")
         
         return jsonify(
             success=True,
-            download_url=f"{gen_img_url}"
+            img_path=img_path,
         )
         
     except Exception as e:
         logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
         return jsonify(success=False, message=str(e))
 
-@app.route('/download', methods=['POST'])
-def download_file_from_hf():
-    # return send_from_directory(
-    #     app.config['OUTPUT_FOLDER'],
-    #     filename,
-    #     as_attachment=True
-    # )
+
+def download_file_from_hf(request_id, upload_file_name, url):
     try:
-        data = request.json
-        url = data['url']
-        path = kolors_hf_req.generate_random_str(12)+"_generated_image.jpg"
-        kolors_hf_req.download_image(url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
-        
-        return jsonify(success=True, img_url=os.path.join(app.config['OUTPUT_FOLDER'], path))
+        path = "-".join([
+            upload_file_name,
+            request_id,
+            kolors_hf_req.generate_random_str(12),
+            "generated_image.jpg"
+        ])
+        kolors_hf_req.download_image(request_id, url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
+        return os.path.join(app.config['OUTPUT_FOLDER'], path)
     except Exception as e:
         logger.error(f"error:{traceback.format_exc()}")
-        return jsonify(success=False, img_url="")
+        return None
+                
+
+# @app.route('/download', methods=['POST'])
+# def download_file_from_hf():
+#     # return send_from_directory(
+#     #     app.config['OUTPUT_FOLDER'],
+#     #     filename,
+#     #     as_attachment=True
+#     # )
+#     try:
+#         data = request.json
+#         url = data['url']
+#         path = kolors_hf_req.generate_random_str(12)+"_generated_image.jpg"
+#         kolors_hf_req.download_image(url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
+        
+#         return jsonify(success=True, img_url=os.path.join(app.config['OUTPUT_FOLDER'], path))
+#     except Exception as e:
+#         logger.error(f"error:{traceback.format_exc()}")
+#         return jsonify(success=False, img_url="")
 
 
 if __name__ == '__main__':
