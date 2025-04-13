@@ -106,7 +106,7 @@ def download_file_from_hf(request_id, upload_file_name, url):
             upload_file_name,
             request_id,
             kolors_hf_req.generate_random_str(12),
-            "generated_image.jpg"
+            "gen_img."+url.split(".")[-1]
         ])
         kolors_hf_req.download_image(request_id, url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
         return os.path.join(app.config['OUTPUT_FOLDER'], path)
