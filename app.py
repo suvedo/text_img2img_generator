@@ -1,10 +1,12 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_file
 #from werkzeug.utils import secure_filename
 import json
 import traceback
 import random
+import qrcode
+import io
 
 import kolors_hf_req
 from log_util import logger
@@ -132,6 +134,34 @@ def download_file_from_hf(request_id, upload_file_name, url):
 #     except Exception as e:
 #         logger.error(f"error:{traceback.format_exc()}")
 #         return jsonify(success=False, img_url="")
+
+
+@app.route('/get_pricing_qr')
+def get_pricing_qr():
+    try:
+        # 生成二维码内容
+        qr_content = "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"
+        logger.info(f"get_pricing_qr, qr_content:{qr_content}")
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_content)
+        qr.make(fit=True)
+
+        # 将二维码保存到内存
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        # 返回二维码图片
+        return send_file(buffer, mimetype='image/png')
+    except Exception as e:
+        logger.error(f"error:{traceback.format_exc()}")
+        return jsonify(success=False, message=str(e)), 500
 
 
 if __name__ == '__main__':

@@ -22,3 +22,4 @@ timm
 onnxruntime
 Flask
 requests_toolbelt
+qrcode==8.1

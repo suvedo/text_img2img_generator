@@ -79,10 +79,12 @@ function showGeneratedImage(path) {
 // }
 
 function toggleLoading(loading) {
-    const btn = document.querySelector('button');
-    btn.innerHTML = loading ? 
-        '<span class="spinner-border spinner-border-sm" role="status"></span> generating...' : 
-        'generate image';
+    const btn = document.getElementById('generateButton'); // 只操作特定按钮
+    if (btn) {
+        btn.innerHTML = loading ? 
+            '<span class="spinner-border spinner-border-sm" role="status"></span> generating...' : 
+            'generate image';
+    }
 }
 
 // 图片预览功能
@@ -103,4 +105,22 @@ document.querySelectorAll('.prompt-template').forEach(item => {
         const textInput = document.getElementById('textInput');
         textInput.value = this.textContent; // 将模板内容填充到输入框
     });
+});
+
+document.getElementById('pricingButton').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/get_pricing_qr');
+        if (response.ok) {
+            const blob = await response.blob();
+            const qrCodeUrl = URL.createObjectURL(blob);
+            console.log("qrCodeUrl:", qrCodeUrl);
+            document.getElementById('qrCodeImage').src = qrCodeUrl;
+            const qrCodeModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+            qrCodeModal.show();
+        } else {
+            alert('Failed to load wechat pay QR code.');
+        }
+    } catch (error) {
+        console.error('Error fetching QR code:', error);
+    }
 });
