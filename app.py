@@ -195,11 +195,10 @@ async def process_wechat_pay_callback(request_id, headers, body, conf):
     """处理验证成功后的业务逻辑"""
     try:
         logger.info(f"request_id:{request_id}, start processing after verify")
-        # 这里放置需要异步处理的业务逻辑
-        # 比如更新订单状态等
-        ciphertext = body["resource"]["ciphertext"]
-        associated_data = body["resource"]["associated_data"]
-        logger.info(f"request_id:{request_id}, processing completed")
+        decrypted_ciphertext = wechat_pay.decrypt_pay_callback_ciphertext(request_id, headers, body, conf)
+        logger.info(f"request_id:{request_id}, decrypted ciphertext:{decrypted_ciphertext}")
+        if body.get("summary", None) == "支付成功":
+            logger.info(f"request_id:{request_id}, payment success")
     except Exception as e:
         logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
 

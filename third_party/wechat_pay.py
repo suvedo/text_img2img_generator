@@ -165,7 +165,7 @@ def verify_pay_callback(request_id, headers, body, conf):
 
         try:
             # 读取微信支付平台公钥
-            with open("./third_party/wxp_pub.pem", "rb") as f:
+            with open(conf["WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH"], "rb") as f:
                 public_key = load_pem_public_key(f.read())
                 
             # Base64解码签名
@@ -193,7 +193,11 @@ def verify_pay_callback(request_id, headers, body, conf):
         return False
 
 
-def decrypt(nonce, ciphertext, associated_data, conf):
+def decrypt_pay_callback_ciphertext(request_id, headers, body, conf):
+    nonce = headers.get('Wechatpay-Nonce')
+    ciphertext = body["resource"]["ciphertext"]
+    associated_data = body["resource"]["associated_data"]
+
     key = conf["WECHAT_PAY_API_PW"]
     key_bytes = str.encode(key)
     nonce_bytes = str.encode(nonce)
