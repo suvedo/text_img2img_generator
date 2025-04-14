@@ -1,19 +1,14 @@
 import requests
 import json
 from pathlib import Path
-import random
-import string
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from log_util import logger
+from utils.log_util import logger
+from utils import random_util
 
 prompt =  """Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, 
 high quality, sharp focus,
 """
-
-def generate_random_str(length=10):
-    characters = string.ascii_lowercase + string.digits  # 定义字符集[8](@ref)
-    return ''.join(random.choices(characters, k=length))  # 随机选择字符[4](@ref)
 
 
 def upload_image_stream(request_id, url, file_stream, upload_id):
@@ -178,7 +173,7 @@ if __name__ == "__main__":
     # file_path = "./data/input_images/test_ip.jpg"
     file_path = "./data/input_images/test_ip2.png"
 
-    upload_id = generate_random_str(11)
+    upload_id = random_util.generate_random_str(11)
     url = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id
 
     res = upload_image(url, file_path, upload_id)
@@ -198,7 +193,7 @@ if __name__ == "__main__":
 
 
     # session_hash = "jmrk72fki1" 
-    session_hash = generate_random_str(10)
+    session_hash = random_util.generate_random_str(10)
     print("session_hash:", session_hash)
 
     post_url = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/queue/join?__theme=system"

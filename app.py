@@ -5,11 +5,14 @@ from flask import Flask, render_template, request, jsonify, send_file
 import json
 import traceback
 import random
-import qrcode
 import io
+import asyncio
 
-import kolors_hf_req
-from log_util import logger
+import third_party.kolors_hf_req as kolors_hf_req
+import third_party.wechat_pay as wechat_pay
+from utils.log_util import logger
+from utils import random_util
+from utils import qr_util
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -25,8 +28,8 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     try:
-        request_id = kolors_hf_req.generate_random_str(16)
-        logger.info(f"got request, request_id:{request_id}")
+        request_id = random_util.generate_random_str(16)
+        logger.info(f"got process request, request_id:{request_id}")
         # 处理图片上传
         if 'image' not in request.files:
             return jsonify(success=False, message="未上传图片")
@@ -41,7 +44,7 @@ def process():
         # file.save(upload_path)
 
         # upload image to hauggingface space
-        upload_id = kolors_hf_req.generate_random_str(11)
+        upload_id = random_util.generate_random_str(11)
         upload_hf_rsp = kolors_hf_req.upload_image_stream(request_id, app.config['KOLORS_HF_UPLOAD_IMG_URL'], file, upload_id)
         path = upload_hf_rsp.json()[0] if upload_hf_rsp.status_code == 200 else None
 
@@ -55,7 +58,7 @@ def process():
         
         logger.info(f"request_id:{request_id}, file_name:{file.filename}, text_content:{text_content}")
         
-        session_hash = kolors_hf_req.generate_random_str(10)
+        session_hash = random_util.generate_random_str(10)
         payload = app.config['KOLORS_HF_GEN_IMG_PAYLOAD']
         payload["session_hash"] = session_hash
         payload["data"][0]["orig_name"] = path.split("/")[-1]
@@ -127,7 +130,7 @@ def download_file_from_hf(request_id, upload_file_name, url):
 #     try:
 #         data = request.json
 #         url = data['url']
-#         path = kolors_hf_req.generate_random_str(12)+"_generated_image.jpg"
+#         path = random_util.generate_random_str(12)+"_generated_image.jpg"
 #         kolors_hf_req.download_image(url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
         
 #         return jsonify(success=True, img_url=os.path.join(app.config['OUTPUT_FOLDER'], path))
@@ -139,20 +142,17 @@ def download_file_from_hf(request_id, upload_file_name, url):
 @app.route('/get_pricing_qr')
 def get_pricing_qr():
     try:
+        request_id = random_util.generate_random_str(16)
+        logger.info(f"got get_pricing_qr request, request_id:{request_id}")
         # 生成二维码内容
-        qr_content = "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"
-        logger.info(f"get_pricing_qr, qr_content:{qr_content}")
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(qr_content)
-        qr.make(fit=True)
+        qr_url = wechat_pay.get_code_url(request_id, app.config) 
+        # qr_content="weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"
+        logger.info(f"request_id:{request_id}, get_pricing_qr, qr_url:{qr_url}")
+        if not qr_url:
+            return jsonify(success=False, message="get wechat pay code fail"), 500
 
         # 将二维码保存到内存
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr_util.gen_qr_img_from_url(qr_url)
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
         buffer.seek(0)
@@ -160,9 +160,55 @@ def get_pricing_qr():
         # 返回二维码图片
         return send_file(buffer, mimetype='image/png')
     except Exception as e:
-        logger.error(f"error:{traceback.format_exc()}")
+        logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
         return jsonify(success=False, message=str(e)), 500
 
 
+@app.route('/wechat_pay_callback', methods=['POST'])
+async def wechat_pay_callback():
+    try:
+        request_id = random_util.generate_random_str(16)
+        logger.info(f"got wechat_pay_callback request, request_id:{request_id}")
+        
+        # 微信支付回调验证
+        if wechat_pay.verify_pay_callback(request_id, request.headers, request.get_json(), app.config):
+            logger.info(f"request_id:{request_id}, wechat pay callback verify success")
+            asyncio.create_task(process_wechat_pay_callback(request_id, request.headers, request.get_json(), app.config))
+            # 异步返回成功响应
+            return jsonify({
+                "code": "200"
+            })
+        else:
+            logger.error(f"request_id:{request_id}, verify pay callback failed")
+            return jsonify({
+                "code": "FAIL",
+                "message": "验证失败"
+            })
+    except Exception as e:
+        logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
+        return jsonify({
+            "code": "FAIL",
+            "message": "系统错误"
+        })
+
+async def process_wechat_pay_callback(request_id, headers, body, conf):
+    """处理验证成功后的业务逻辑"""
+    try:
+        logger.info(f"request_id:{request_id}, start processing after verify")
+        # 这里放置需要异步处理的业务逻辑
+        # 比如更新订单状态等
+        ciphertext = body["resource"]["ciphertext"]
+        associated_data = body["resource"]["associated_data"]
+        logger.info(f"request_id:{request_id}, processing completed")
+    except Exception as e:
+        logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
+
+
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8000)
+    # app.run(host="0.0.0.0", port=8000)
+    from hypercorn.config import Config
+    from hypercorn.asyncio import serve
+
+    config = Config()
+    config.bind = ["0.0.0.0:8000"]
+    asyncio.run(serve(app, config))
