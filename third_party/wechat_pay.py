@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import traceback
+from datetime import datetime, timedelta, timezone
 
 from utils.log_util import logger
 from utils import random_util
@@ -27,6 +28,10 @@ def get_code_url(request_id, user_id, order_type, out_trade_no, conf):
                             "user_id": user_id,
                             "order_type": order_type
                         }, ensure_ascii=False)
+        # 生成15分钟后的过期时间
+        beijing_tz = timezone(timedelta(hours=8))  # 北京时区 UTC+8
+        expire_time = datetime.now(beijing_tz) + timedelta(minutes=15)
+        time_expire = expire_time.strftime('%Y-%m-%dT%H:%M:%S+08:00')
         payload = {
             "appid" : conf["WECHAT_PAY_APPID"],
             "mchid" : conf["WECHAT_PAY_MCHID"],
@@ -34,6 +39,7 @@ def get_code_url(request_id, user_id, order_type, out_trade_no, conf):
             "out_trade_no" : out_trade_no,
             "attach" : attach_str,
             "notify_url" : conf["WECHAT_PAY_NOTIFY_URL"],
+            "time_expire" : time_expire,
             "support_fapiao" : False,
             "amount" : {
                 "total" : amount_total,

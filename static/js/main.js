@@ -111,10 +111,10 @@ function startPaymentPolling(userId, orderType, outTradeNo) {
             if (result.success) {
                 if (result.paid) {
                     // 显示支付成功的 Toast
-                    const toast = new bootstrap.Toast(document.getElementById('paymentSuccessToast'));
+                    const toastElement = document.getElementById('paymentSuccessToast');
+                    const toast = bootstrap.Toast.getInstance(toastElement) || new bootstrap.Toast(toastElement);
                     toast.show();
                     
-                    // 3秒后刷新页面
                     setTimeout(() => {
                         window.location.reload();
                     }, 3000);
@@ -138,6 +138,17 @@ function startPaymentPolling(userId, orderType, outTradeNo) {
     // 开始轮询
     poll();
 }
+
+// 初始化所有的 Toast 组件
+document.addEventListener('DOMContentLoaded', function() {
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    toastElList.map(function(toastEl) {
+        return new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 3000
+        });
+    });
+});
 
 // 图片预览功能
 document.getElementById('imageUpload').addEventListener('change', function(e) {
