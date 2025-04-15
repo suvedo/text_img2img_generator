@@ -241,7 +241,11 @@ def query_payment_status():
                     f"user_id:{user_id}, order_type:{order_type}, out_trade_no:{out_trade_no}")
         
         st = payment_state_dao.get_payment_state(request_id, user_id, order_type, out_trade_no)
-        if st and payment_state_dao.success_paid(st):
+        if st is None:
+            logger.info(f"request_id:{request_id}, order_no:{out_trade_no} not found")
+            return jsonify({'success': False, 'paid': False})
+        
+        if payment_state_dao.success_paid(st):
             logger.info(f"request_id:{request_id}, order_no:{out_trade_no} success paid")
             return jsonify({'success': True, 'paid': True})
 

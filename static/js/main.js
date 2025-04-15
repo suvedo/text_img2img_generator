@@ -119,6 +119,16 @@ function startPaymentPolling(userId, orderType, outTradeNo) {
                         window.location.reload();
                     }, 3000);
                     return;
+                } else {
+                    // 显示支付失败的 Toast
+                    const toastElement = document.getElementById('paymentFailedToast');
+                    const toast = bootstrap.Toast.getInstance(toastElement) || new bootstrap.Toast(toastElement);
+                    toast.show();
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                    return;
                 }
             }
             
@@ -128,7 +138,15 @@ function startPaymentPolling(userId, orderType, outTradeNo) {
                 setTimeout(poll, pollInterval);
             } else {
                 console.log('支付超时');
-                // 可以显示提示信息
+                // 显示支付失败的 Toast
+                const toastElement = document.getElementById('paymentFailedTimeoutToast');
+                const toast = bootstrap.Toast.getInstance(toastElement) || new bootstrap.Toast(toastElement);
+                toast.show();
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+                return;
             }
         } catch (error) {
             console.error('轮询出错:', error);

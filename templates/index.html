@@ -117,5 +117,29 @@
             </div>
         </div>
     </div>
+
+    <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
+        <div id="paymentFailedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">支付失败</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                支付未完成，页面即将刷新...
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
+        <div id="paymentFailedTimeoutToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">支付超时</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                支付未完成，页面即将刷新...
+            </div>
+        </div>
+    </div>
 </body>
 </html>
