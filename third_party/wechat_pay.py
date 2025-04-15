@@ -137,6 +137,7 @@ def sign_with_rsa(request_id, pem_str, private_key_path):
 
 def verify_pay_callback(request_id, headers, body, conf):
     try:
+        logger.info(f"request_id:{request_id}, verify_pay_callback, headers: {headers}")
         serial = headers.get('Wechatpay-Serial')
         signature = headers.get('Wechatpay-Signature')
         timestamp = headers.get('Wechatpay-Timestamp')
@@ -194,7 +195,8 @@ def verify_pay_callback(request_id, headers, body, conf):
 
 
 def decrypt_pay_callback_ciphertext(request_id, headers, body, conf):
-    nonce = headers.get('Wechatpay-Nonce')
+    # nonce = headers.get('Wechatpay-Nonce')
+    nonce = body["resource"]["nonce"]
     ciphertext = body["resource"]["ciphertext"]
     associated_data = body["resource"]["associated_data"]
 
@@ -204,7 +206,7 @@ def decrypt_pay_callback_ciphertext(request_id, headers, body, conf):
     ad_bytes = str.encode(associated_data)
     data = base64.b64decode(ciphertext)
     aesgcm = AESGCM(key_bytes)
-    return aesgcm.decrypt(nonce_bytes, data, ad_bytes)
+    return aesgcm.decrypt(nonce_bytes, data, ad_bytes).decode('utf-8')
 
 # 示例调用
 if __name__ == "__main__":
