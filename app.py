@@ -13,6 +13,7 @@ import third_party.wechat_pay as wechat_pay
 from utils.log_util import logger
 from utils import random_util
 from utils import qr_util
+from database import payment_state_dao
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -145,7 +146,10 @@ def get_pricing_qr():
         request_id = random_util.generate_random_str(16)
         logger.info(f"got get_pricing_qr request, request_id:{request_id}")
         # 生成二维码内容
-        qr_url = wechat_pay.get_code_url(request_id, app.config) 
+        user_id = "admin_user_id"
+        order_type = "1" # 1
+        out_trade_no = random_util.generate_random_str(16)
+        qr_url = wechat_pay.get_code_url(request_id, user_id, order_type, out_trade_no, app.config) 
         # qr_content="weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"
         logger.info(f"request_id:{request_id}, get_pricing_qr, qr_url:{qr_url}")
         if not qr_url:
@@ -158,7 +162,13 @@ def get_pricing_qr():
         buffer.seek(0)
 
         # 返回二维码图片
-        return send_file(buffer, mimetype='image/png')
+        # 设置响应头，包含订单参数
+        response = send_file(buffer, mimetype='image/png')
+        response.headers['X-Order-Id'] = out_trade_no
+        response.headers['X-User-Id'] = user_id
+        response.headers['X-Order-Type'] = order_type
+        
+        return response
     except Exception as e:
         logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
         return jsonify(success=False, message=str(e)), 500
@@ -195,12 +205,54 @@ async def process_wechat_pay_callback(request_id, headers, body, conf):
     """处理验证成功后的业务逻辑"""
     try:
         logger.info(f"request_id:{request_id}, start processing after verify")
+        # 解密回调数据
         decrypted_ciphertext = wechat_pay.decrypt_pay_callback_ciphertext(request_id, headers, body, conf)
         logger.info(f"request_id:{request_id}, decrypted ciphertext:{decrypted_ciphertext}")
-        if body.get("summary", None) == "支付成功":
-            logger.info(f"request_id:{request_id}, payment success")
+        cipher_json = json.loads(decrypted_ciphertext)
+        if cipher_json.get("trade_state", "") != "SUCCESS":
+            logger.info(f"request_id:{request_id}, payment failed")
+            return
+        logger.info(f"request_id:{request_id}, payment success")
+        attatch_json = json.loads(cipher_json.get("attach", "{}"))
+        user_id = attatch_json.get("user_id", None)
+        order_type = attatch_json.get("order_type", None)
+        out_trade_no = cipher_json.get("out_trade_no", None)
+        if not user_id or not order_type or not out_trade_no:
+            logger.error(f"request_id:{request_id}, invalid attach json:{attatch_json}")
+            return
+        
+        payment_state_dao.set_payment_state(request_id, user_id, order_type, \
+                                            out_trade_no, payment_state_dao.gen_paied_state(True))
+        return
     except Exception as e:
         logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
+
+
+@app.route('/query_payment_status', methods=['POST'])
+def query_payment_status():
+    try:
+        request_id = random_util.generate_random_str(16)
+        data = request.get_json()
+        user_id = data.get('user_id')
+        order_type = data.get('order_type')
+        out_trade_no = data.get('out_trade_no')
+        
+        logger.info(f"request_id:{request_id}, got payment status request, " \
+                    "user_id:{user_id}, order_type:{order_type}, out_trade_no:{out_trade_no}")
+        
+        st = payment_state_dao.get_payment_state(request_id, user_id, order_type, out_trade_no)
+        if st and payment_state_dao.success_paid(st):
+            logger.info(f"request_id:{request_id}, order_no:{out_trade_no} success paid")
+            return jsonify({'success': True, 'paid': True})
+
+        logger.info(f"request_id:{request_id}, order_no:{out_trade_no} not paid")
+        return jsonify({
+            'success': True,
+            'paid': False  # 这里返回实际的支付状态
+        })
+    except Exception as e:
+        logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
+        return jsonify(success=False, message=str(e))
 
 
 if __name__ == '__main__':

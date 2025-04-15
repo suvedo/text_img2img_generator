@@ -13,7 +13,7 @@ from utils.log_util import logger
 from utils import random_util
 
 
-def get_code_url(request_id, conf):
+def get_code_url(request_id, user_id, order_type, out_trade_no, conf):
     """
     获取微信支付的二维码链接
     :param request_id: 请求ID
@@ -21,14 +21,18 @@ def get_code_url(request_id, conf):
     :return: 二维码链接
     """
     try:
-        out_trade_no = random_util.generate_random_str(16)
         amount_total = int(conf["WECHAT_PAY_AMOUNT"].split("-")[0])
         amount_currency = conf["WECHAT_PAY_AMOUNT"].split("-")[1]
+        attach_str = json.dumps({
+                            "user_id": user_id,
+                            "order_type": order_type
+                        }, ensure_ascii=False)
         payload = {
             "appid" : conf["WECHAT_PAY_APPID"],
             "mchid" : conf["WECHAT_PAY_MCHID"],
             "description" : conf["WECHAT_PAY_DISCRIPTION"],
             "out_trade_no" : out_trade_no,
+            "attach" : attach_str,
             "notify_url" : conf["WECHAT_PAY_NOTIFY_URL"],
             "support_fapiao" : False,
             "amount" : {

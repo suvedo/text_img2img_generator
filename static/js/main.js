@@ -87,6 +87,58 @@ function toggleLoading(loading) {
     }
 }
 
+function startPaymentPolling(userId, orderType, outTradeNo) {
+    let pollCount = 0;
+    const maxPollCount = 905; // 最多轮询905次，略多于15分钟
+    const pollInterval = 1000; // 每1秒轮询一次
+    
+    const poll = async () => {
+        try {
+            const response = await fetch('/query_payment_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    order_type: orderType,
+                    out_trade_no: outTradeNo
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                if (result.paid) {
+                    // 显示支付成功的 Toast
+                    const toast = new bootstrap.Toast(document.getElementById('paymentSuccessToast'));
+                    toast.show();
+                    
+                    // 3秒后刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                    return;
+                }
+            }
+            
+            // 继续轮询
+            pollCount++;
+            if (pollCount < maxPollCount) {
+                setTimeout(poll, pollInterval);
+            } else {
+                console.log('支付超时');
+                // 可以显示提示信息
+            }
+        } catch (error) {
+            console.error('轮询出错:', error);
+        }
+    };
+    
+    // 开始轮询
+    poll();
+}
+
 // 图片预览功能
 document.getElementById('imageUpload').addEventListener('change', function(e) {
     const preview = document.getElementById('preview');
@@ -117,6 +169,13 @@ document.getElementById('pricingButton').addEventListener('click', async () => {
             document.getElementById('qrCodeImage').src = qrCodeUrl;
             const qrCodeModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
             qrCodeModal.show();
+
+            const userId = response.headers.get('X-User-Id');
+            const orderType = response.headers.get('X-Order-Type');
+            const outTradeNo = response.headers.get('X-Order-Id');
+
+            // 开始轮询支付状态
+            startPaymentPolling(userId, orderType, outTradeNo);
         } else {
             alert('Failed to load wechat pay QR code.');
         }
