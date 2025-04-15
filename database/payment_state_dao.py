@@ -48,7 +48,7 @@ def get_payment_state(request_id, user_id, order_type, out_trade_no):
                 logger.info(f"request_id:{request_id}, get payment state for order_no:{order_no}, state:{state}")
                 return state
             else:
-                logger.info(f"request_id:{request_id}, order_no:{order_no} not found")
+                # logger.info(f"request_id:{request_id}, order_no:{order_no} not found")
                 return None
     except Exception as e:
         logger.error(f"request_id:{request_id}, error in get_payment_state: {traceback.format_exc()}")
