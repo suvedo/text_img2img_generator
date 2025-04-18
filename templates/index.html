@@ -5,53 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Factory</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/navbar.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/payment.css') }}" rel="stylesheet">
 </head>
-<!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Home</a>
-        <div class="d-flex justify-content-center flex-grow-1">
-            <button class="btn btn-outline-primary mx-2" id="pricingButton">Pricing</button>
-        </div>
-        <div class="d-flex">
-            <button class="btn btn-outline-success mx-2" id="loginButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log in</button>
-            <button class="btn btn-outline-info" id="signupButton" data-bs-toggle="modal" data-bs-target="#signupModal">Sign up</button>
-        </div>
-    </div>
-</nav> -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Home</a>
-        <div class="d-flex justify-content-center flex-grow-1">
-            <button class="btn btn-outline-primary mx-2" id="pricingButton">Pricing</button>
-        </div>
-        <div class="d-flex">
-            {% if is_logged_in %}
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ user_email }}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><button class="dropdown-item" onclick="handleLogout()">Log out</button></li>
-                    </ul>
-                </div>
-            {% else %}
-                <button class="btn btn-outline-success mx-2" id="loginButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log in</button>
-                <button class="btn btn-outline-info" id="signupButton" data-bs-toggle="modal" data-bs-target="#signupModal">Sign up</button>
-            {% endif %}
-        </div>
-    </div>
-</nav>
 
-<div id="qrCodeModal" class="modal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- 引入导航栏组件 -->
+{% include 'components/navbar.html' %}
+
+<!-- 微信支付二维码弹窗 -->
+<div id="qrCodeModal" class="modal payment-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-center w-100">Wechat Payment QR Code<br> (finish your payment within 15 mins please)</h5>
+                <h5 class="modal-title text-center w-100">
+                    <i class="fab fa-weixin me-2" style="color: #07C160;"></i>
+                    WeChat Payment
+                    <div class="small text-muted mt-2">Please complete payment within 15 minutes</div>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid">
+                <div class="qr-code-container">
+                    <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid mb-3">
+                    <div class="timer">
+                        <i class="far fa-clock me-1"></i>
+                        <span id="paymentTimer">15:00</span> remaining
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -59,39 +43,46 @@
 
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Image Factory</h1>
         <div class="container mt-3">
-            <p class="text-center text-white bg-primary p-3 rounded shadow">
-                <strong>Welcome to Image Factory! You can upload your image and then generate your own image with the prompt you input.<br>you can try many times to choose the most satisfied picture.</strong>
-            </p>
+            <div class="welcome-message">
+                <p class="text-center p-4 rounded-lg animate__animated animate__fadeIn">
+                    <span class="welcome-title">Welcome to Image Factory!</span>
+                    <span class="welcome-text">Upload your image and generate your own masterpiece with custom prompts.<br>
+                    Explore endless possibilities until you find your perfect creation.</span>
+                </p>
+            </div>
         </div>
-
-        
 
         <div class="row mb-4">
             <!-- 图片上传区域 -->
             <div class="col-md-6">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <div class="title-upload-container" style="display: flex; align-items: center; gap: 15px;">
-                            <h5 class="card-title" style="margin: 0; white-space: nowrap;">upload your image</h5>
-                            <div class="custom-file-upload">
-                                <input type="file" id="imageUpload" accept="image/*" class="form-control">
-                                <label for="imageUpload">click to upload</label>
+                        <h5 class="card-title">Upload your image</h5>
+                        <div class="preview-area mt-3" id="preview">
+                            <input type="file" id="imageUpload" accept="image/*" class="form-control d-none">
+                            <div class="upload-container text-center" id="uploadContainer">
+                                <label for="imageUpload" class="upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>click to upload</span>
+                                </label>
+                            </div>
+                            <div class="image-preview-container d-none" id="imagePreviewContainer">
+                                <!-- 预览图片将在这里显示 -->
                             </div>
                         </div>
-                        <div class="preview-area mt-3" id="preview"></div>
                     </div>
                 </div>
             </div>
-        
+            
+
             <!-- 图片生成预览区域 -->
             <div class="col-md-6">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h5 class="card-title">generated image preview</h5>
-                        <div class="generated-preview-area mt-3" id="generatedPreview" style="text-align: center;">
-                            <p class="text-muted">Your generated image will appear here.</p>
+                        <h5 class="card-title">Generated image preview</h5>
+                        <div class="generated-preview-area mt-3" id="generatedPreview">
+                            <p class="text-muted">Your generated image will appear here</p>
                         </div>
                     </div>
                 </div>
@@ -125,73 +116,11 @@
             </div>
         </div>
 
-        
-
         <!-- 操作按钮 -->
         <div class="d-grid gap-2">
             <button id="generateButton" class="btn btn-primary btn-lg" onclick="handleSubmit()">generate image</button>
         </div>
 
-    </div>
-
-    <!-- 登录模态框 -->
-    <div class="modal fade" id="loginModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Log in</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="loginForm">
-                        <div class="mb-3">
-                            <label for="loginEmail" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="loginEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="loginPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="loginPassword" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 mb-2">Log in</button>
-                    </form>
-                    <div class="text-center">
-                        <p class="mb-0">no account?<button class="btn btn-link" onclick="switchToSignup()">click to sign up</button></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 注册模态框 -->
-    <div class="modal fade" id="signupModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Sign up</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="signupForm">
-                        <div class="mb-3">
-                            <label for="signupEmail" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="signupEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="signupPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="signupPassword" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Sign up</button>
-                    </form>
-                    <div class="text-center">
-                        <p class="mb-0">has account?<button class="btn btn-link" onclick="switchToLogin()">click to login</button></p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>

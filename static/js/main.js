@@ -1,6 +1,87 @@
+// 初始化所有的 Toast 组件
+document.addEventListener('DOMContentLoaded', function() {
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    toastElList.map(function(toastEl) {
+        return new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 3000
+        });
+    });
+
+    // 调用图片上传初始化函数
+    initializeImageUpload();
+    
+    // 初始化模板点击事件
+    document.querySelectorAll('.prompt-template').forEach(item => {
+        item.addEventListener('click', function() {
+            const textInput = document.getElementById('textInput');
+            textInput.value = this.textContent;
+        });
+    });
+});
+
+function initializeImageUpload() {
+    const fileInput = document.getElementById('imageUpload');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+    if (!fileInput || !uploadContainer || !imagePreviewContainer) {
+        console.error('无法初始化文件上传功能，找不到必要元素');
+        return;
+    }
+
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            // 创建预览容器
+            const previewWrapper = document.createElement('div');
+            previewWrapper.className = 'preview-wrapper position-relative';
+            
+            // 创建预览图片
+            const img = document.createElement('img');
+            img.classList.add('preview-image');
+            img.src = URL.createObjectURL(this.files[0]);
+            
+            // 创建删除按钮
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-image-btn';
+            deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+            deleteBtn.onclick = function(e) {
+                e.preventDefault();
+                // 清空文件输入
+                fileInput.value = '';
+                // 显示上传容器
+                uploadContainer.classList.remove('d-none');
+                // 隐藏预览容器
+                imagePreviewContainer.classList.add('d-none');
+                // 清空预览容器
+                imagePreviewContainer.innerHTML = '';
+            };
+            
+            // 组装预览界面
+            previewWrapper.appendChild(img);
+            previewWrapper.appendChild(deleteBtn);
+            
+            // 清空并更新预览容器
+            imagePreviewContainer.innerHTML = '';
+            imagePreviewContainer.appendChild(previewWrapper);
+            
+            // 切换显示状态
+            uploadContainer.classList.add('d-none');
+            imagePreviewContainer.classList.remove('d-none');
+        }
+    });
+}
+
 async function handleSubmit() {
     const fileInput = document.getElementById('imageUpload');
     const textInput = document.getElementById('textInput').value;
+    
+    // 检查元素是否存在
+    if (!fileInput || !textInput) {
+        alert('please upload your image and input your prompt or use prompt template');
+        return;
+    }
+
     const formData = new FormData();
 
     if (fileInput.files.length === 0) {
@@ -51,38 +132,6 @@ function showGeneratedImage(path) {
     img.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
     generatedPreview.appendChild(img);
 }
-
-// function downLoadImageFromHf(url) {
-//     // const downloadSection = document.getElementById('downloadSection');
-//     // const downloadLink = document.getElementById('downloadLink');
-//     // downloadLink.href = url;
-//     // downloadSection.style.display = 'block';
-
-//     const payload = { "url": url };
-//     fetch('/download', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json', // 必须与后端匹配[1,6](@ref)
-//         },
-//         body: JSON.stringify(payload)
-//     }).then(response => response.json())
-//     .then(data => {
-//         if (data.success) {
-//             console.log('Image downloaded successfully:', data.img_url);
-//             showGeneratedImage(data.img_url)
-//         } else {
-//             console.error('Error:', 'failed to download image');
-//         }
-//     })
-
-//     // try {
-//     //     const response = fetch('/download/'+url);
-//     //     const data = response.json();
-//     //     console.log(data.message);  // 输出: "Hello, Alice! This is..."
-//     // } catch (error) {
-//     //     console.error('failed:', error);
-//     // }
-// }
 
 function toggleLoading(loading) {
     const btn = document.getElementById('generateButton'); // 只操作特定按钮
@@ -163,175 +212,23 @@ function startPaymentPolling(userId, orderType, outTradeNo) {
     poll();
 }
 
-// 初始化所有的 Toast 组件
-document.addEventListener('DOMContentLoaded', function() {
-    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
-    toastElList.map(function(toastEl) {
-        return new bootstrap.Toast(toastEl, {
-            autohide: true,
-            delay: 3000
-        });
-    });
-});
 
-// 图片预览功能
-document.getElementById('imageUpload').addEventListener('change', function(e) {
-    const preview = document.getElementById('preview');
-    preview.innerHTML = '';
+// // 图片预览功能
+// document.getElementById('imageUpload').addEventListener('change', function(e) {
+//     const preview = document.getElementById('preview');
+//     preview.innerHTML = '';
     
-    if (this.files && this.files[0]) {
-        const img = document.createElement('img');
-        img.classList.add('preview-image');
-        img.src = URL.createObjectURL(this.files[0]);
-        preview.appendChild(img);
-    }
-});
+//     if (this.files && this.files[0]) {
+//         const img = document.createElement('img');
+//         img.classList.add('preview-image');
+//         img.src = URL.createObjectURL(this.files[0]);
+//         preview.appendChild(img);
+//     }
+// });
 
-document.querySelectorAll('.prompt-template').forEach(item => {
-    item.addEventListener('click', function() {
-        const textInput = document.getElementById('textInput');
-        textInput.value = this.textContent; // 将模板内容填充到输入框
-    });
-});
-
-document.getElementById('pricingButton').addEventListener('click', async () => {
-    try {
-        console.log("Fetching QR code...");
-        const response = await fetch('/get_pricing_qr');
-        if (response.ok) {
-            const blob = await response.blob();
-            const qrCodeUrl = URL.createObjectURL(blob);
-            console.log("qrCodeUrl:", qrCodeUrl);
-            document.getElementById('qrCodeImage').src = qrCodeUrl;
-            const qrCodeModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
-            qrCodeModal.show();
-
-            const userId = response.headers.get('X-User-Id');
-            const orderType = response.headers.get('X-Order-Type');
-            const outTradeNo = response.headers.get('X-Order-Id');
-
-            // 开始轮询支付状态
-            startPaymentPolling(userId, orderType, outTradeNo);
-        } else {
-            alert('Failed to load wechat pay QR code.');
-        }
-    } catch (error) {
-        console.error('Error fetching QR code:', error);
-    }
-});
-
-// 添加登录表单处理
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        })
-        .then(response => response.json())
-        .then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert(response.msg);
-            }
-        })
-    } catch (error) {
-        console.error('Login error:', error);
-        alert('Login failed. Please try again.');
-    }
-});
-
-
-// 添加注册表单处理
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    if (!email || !password || !confirmPassword) {
-        alert('All fields are required!');
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        })
-        .then(response => response.json())
-        .then(response => {
-            if (response.ok) {
-                alert('Registration successful! Please log in.');
-                const signupModal = bootstrap.Modal.getInstance(document.getElementById('signupModal'));
-                signupModal.hide();
-                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-                loginModal.show();
-            } else {
-                alert(response.msg);
-            }
-        })
-    } catch (error) {
-        console.error('Signup error:', error);
-        alert('Registration failed. Please try again.');
-    }
-});
-
-
-function switchToSignup() {
-    // 隐藏登录模态框
-    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-    loginModal.hide();
-    
-    // 显示注册模态框
-    const signupModal = new bootstrap.Modal(document.getElementById('signupModal'));
-    signupModal.show();
-};
-
-function switchToLogin(){
-    // 隐藏注册模态框
-    const signupModal = bootstrap.Modal.getInstance(document.getElementById('signupModal'));
-    signupModal.hide();
-    
-    // 显示登录模态框
-    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    loginModal.show();
-};
-
-async function handleLogout() {
-    try {
-        const response = await fetch('/api/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            alert('Logout successful!');
-            location.reload();
-        } else {
-            alert('Logout failed. Please try again.');
-        }
-    } catch (error) {
-        console.error('Logout error:', error);
-        alert('Logout failed. Please try again.');
-    }
-}
-
-
+// document.querySelectorAll('.prompt-template').forEach(item => {
+//     item.addEventListener('click', function() {
+//         const textInput = document.getElementById('textInput');
+//         textInput.value = this.textContent; // 将模板内容填充到输入框
+//     });
+// });
