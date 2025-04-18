@@ -26,3 +26,5 @@ qrcode==8.1
 cryptography==44.0.2
 hypercorn==0.17.3
 asgiref
+flask-sqlalchemy==3.1.1
+pymysql==1.1.1

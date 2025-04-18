@@ -43,3 +43,12 @@ body {
     text-align: center;
     cursor: pointer;
   }
+
+.dropdown-menu {
+    min-width: 100%;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}

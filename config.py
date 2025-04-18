@@ -1,9 +1,8 @@
 import os
 import requests
-
-
-import requests
 import socket
+
+from utils.random_util import generate_random_str
 
 def get_public_ip():
     """
@@ -68,8 +67,12 @@ OUTPUT_FOLDER = 'static/outputs' #os.path.join(BASE_DIR, 'static/outputs')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 
 # Flask配置
-SECRET_KEY = 'your-secret-key-here'
+SECRET_KEY = generate_random_str(24)
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+
+# Database configuration
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_generator'
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Kolors Huggingface Space配置
 KOLORS_HF_UPLOAD_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id

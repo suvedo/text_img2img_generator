@@ -1,4 +1,4 @@
-function handleSubmit() {
+async function handleSubmit() {
     const fileInput = document.getElementById('imageUpload');
     const textInput = document.getElementById('textInput').value;
     const formData = new FormData();
@@ -23,7 +23,13 @@ function handleSubmit() {
             showGeneratedImage(data.img_path);
             // console.info('finish generating image');
         } else {
-            alert('failed:' + data.message);
+            if (!data.isAuthenticated) {
+                // 显示登录模态框
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            } else {
+                alert('failed:' + data.message);
+            }
         }
     })
     .catch(error => {
@@ -190,6 +196,7 @@ document.querySelectorAll('.prompt-template').forEach(item => {
 
 document.getElementById('pricingButton').addEventListener('click', async () => {
     try {
+        console.log("Fetching QR code...");
         const response = await fetch('/get_pricing_qr');
         if (response.ok) {
             const blob = await response.blob();
@@ -212,3 +219,119 @@ document.getElementById('pricingButton').addEventListener('click', async () => {
         console.error('Error fetching QR code:', error);
     }
 });
+
+// 添加登录表单处理
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert(response.msg);
+            }
+        })
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
+    }
+});
+
+
+// 添加注册表单处理
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!email || !password || !confirmPassword) {
+        alert('All fields are required!');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (response.ok) {
+                alert('Registration successful! Please log in.');
+                const signupModal = bootstrap.Modal.getInstance(document.getElementById('signupModal'));
+                signupModal.hide();
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            } else {
+                alert(response.msg);
+            }
+        })
+    } catch (error) {
+        console.error('Signup error:', error);
+        alert('Registration failed. Please try again.');
+    }
+});
+
+
+function switchToSignup() {
+    // 隐藏登录模态框
+    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+    loginModal.hide();
+    
+    // 显示注册模态框
+    const signupModal = new bootstrap.Modal(document.getElementById('signupModal'));
+    signupModal.show();
+};
+
+function switchToLogin(){
+    // 隐藏注册模态框
+    const signupModal = bootstrap.Modal.getInstance(document.getElementById('signupModal'));
+    signupModal.hide();
+    
+    // 显示登录模态框
+    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+    loginModal.show();
+};
+
+async function handleLogout() {
+    try {
+        const response = await fetch('/api/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            alert('Logout successful!');
+            location.reload();
+        } else {
+            alert('Logout failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('Logout failed. Please try again.');
+    }
+}
+
+

@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, \
+    jsonify, send_file, session, Blueprint
 #from werkzeug.utils import secure_filename
 import json
 import traceback
@@ -14,9 +15,18 @@ from utils.log_util import logger
 from utils import random_util
 from utils import qr_util
 from database import payment_state_dao
+from database.db_model import db
+from account import user_account
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
+
+# 初始化数据库
+db.init_app(app)
+
+# 创建数据库表
+with app.app_context():
+    db.create_all()
 
 # 确保上传和输出目录存在
 os.makedirs(os.path.join(app.config['BASE_DIR'], app.config['UPLOAD_FOLDER']), exist_ok=True)
@@ -24,20 +34,36 @@ os.makedirs(os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER']), e
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    is_logged_in = user_account.check_auth(random_util.generate_random_str(16), session)
+    user_email = session.get('email', '') if is_logged_in else ''
+    return render_template('index.html', 
+                         is_logged_in=is_logged_in,
+                         user_email=user_email)
 
 @app.route('/process', methods=['POST'])
 def process():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got process request, request_id:{request_id}")
+    auth = False
     try:
-        request_id = random_util.generate_random_str(16)
-        logger.info(f"got process request, request_id:{request_id}")
+        if (not user_account.check_auth(request_id, session)):
+            logger.info(f"request_id:{request_id}, user not login")
+            return jsonify(success=False, isAuthenticated=auth, message="用户未登录")
+        auth = True
+    except Exception as e:
+        logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
+        return jsonify(success=False, isAuthenticated=auth, message=str(e))
+        
+    logger.info(f"request_id:{request_id}, user_id:{session['user_id']}, email:{session['email']}")
+        
+    try:
         # 处理图片上传
         if 'image' not in request.files:
-            return jsonify(success=False, message="未上传图片")
+            return jsonify(success=False, isAuthenticated=auth, message="未上传图片")
         
         file = request.files['image']
         if file.filename == '':
-            return jsonify(success=False, message="未选择文件")
+            return jsonify(success=False, isAuthenticated=auth, message="未选择文件")
         
         # 保存原始图片
         # filename = secure_filename(file.filename)
@@ -50,12 +76,12 @@ def process():
         path = upload_hf_rsp.json()[0] if upload_hf_rsp.status_code == 200 else None
 
         if not path:
-            return jsonify(success=False, message="upload image failed")
+            return jsonify(success=False, isAuthenticated=auth, message="upload image failed")
 
         # 获取文本内容
         text_content = request.form.get('text', '')
         if not text_content:
-            return jsonify(success=False, message="no text content provided")
+            return jsonify(success=False, isAuthenticated=auth, message="no text content provided")
         
         logger.info(f"request_id:{request_id}, file_name:{file.filename}, text_content:{text_content}")
         
@@ -90,20 +116,21 @@ def process():
 
         logger.info(f"request_id:{request_id}, gen_img_url:{gen_img_url}")
         if not gen_img_url:
-            return jsonify(success=False, message="generate image failed, try it later")
+            return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
         
         img_path = download_file_from_hf(request_id, file.filename, gen_img_url)
         if not img_path:
-            return jsonify(success=False, message="generate image failed, try it later")
+            return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
         
         return jsonify(
-            success=True,
+            success=True, 
+            isAuthenticated=auth,
             img_path=img_path,
         )
         
     except Exception as e:
         logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
-        return jsonify(success=False, message=str(e))
+        return jsonify(success=False, isAuthenticated=auth, message=str(e))
 
 
 def download_file_from_hf(request_id, upload_file_name, url):
@@ -111,7 +138,7 @@ def download_file_from_hf(request_id, upload_file_name, url):
         path = "-".join([
             upload_file_name,
             request_id,
-            kolors_hf_req.generate_random_str(12),
+            random_util.generate_random_str(12),
             "gen_img."+url.split(".")[-1]
         ])
         kolors_hf_req.download_image(request_id, url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
@@ -120,25 +147,6 @@ def download_file_from_hf(request_id, upload_file_name, url):
         logger.error(f"error:{traceback.format_exc()}")
         return None
                 
-
-# @app.route('/download', methods=['POST'])
-# def download_file_from_hf():
-#     # return send_from_directory(
-#     #     app.config['OUTPUT_FOLDER'],
-#     #     filename,
-#     #     as_attachment=True
-#     # )
-#     try:
-#         data = request.json
-#         url = data['url']
-#         path = random_util.generate_random_str(12)+"_generated_image.jpg"
-#         kolors_hf_req.download_image(url, os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER'], path))
-        
-#         return jsonify(success=True, img_url=os.path.join(app.config['OUTPUT_FOLDER'], path))
-#     except Exception as e:
-#         logger.error(f"error:{traceback.format_exc()}")
-#         return jsonify(success=False, img_url="")
-
 
 @app.route('/get_pricing_qr')
 def get_pricing_qr():
@@ -260,6 +268,27 @@ def query_payment_status():
         logger.error(f"request_id:{request_id}, user_id:{user_id}, order_type:{order_type}, " \
                      f"out_trade_no:{out_trade_no}, error:{traceback.format_exc()}")
         return jsonify({'success': False, 'paid': False})
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got login request, request_id:{request_id}")
+    data = request.get_json()
+    return user_account.login(request_id, data, session)
+
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got signup request, request_id:{request_id}")
+    data = request.get_json()
+    return user_account.signup(request_id, data, session)
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got logout request, request_id:{request_id}")
+    return user_account.logout(request_id, session)
 
 
 if __name__ == '__main__':

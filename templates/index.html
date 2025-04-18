@@ -7,10 +7,39 @@
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+<!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Home</a>
+        <div class="d-flex justify-content-center flex-grow-1">
+            <button class="btn btn-outline-primary mx-2" id="pricingButton">Pricing</button>
+        </div>
+        <div class="d-flex">
+            <button class="btn btn-outline-success mx-2" id="loginButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log in</button>
+            <button class="btn btn-outline-info" id="signupButton" data-bs-toggle="modal" data-bs-target="#signupModal">Sign up</button>
+        </div>
+    </div>
+</nav> -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">back to main page</a>
-        <button class="btn btn-outline-primary" id="pricingButton">Pricing</button>
+        <a class="navbar-brand" href="/">Home</a>
+        <div class="d-flex justify-content-center flex-grow-1">
+            <button class="btn btn-outline-primary mx-2" id="pricingButton">Pricing</button>
+        </div>
+        <div class="d-flex">
+            {% if is_logged_in %}
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ user_email }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><button class="dropdown-item" onclick="handleLogout()">Log out</button></li>
+                    </ul>
+                </div>
+            {% else %}
+                <button class="btn btn-outline-success mx-2" id="loginButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log in</button>
+                <button class="btn btn-outline-info" id="signupButton" data-bs-toggle="modal" data-bs-target="#signupModal">Sign up</button>
+            {% endif %}
+        </div>
     </div>
 </nav>
 
@@ -36,6 +65,8 @@
                 <strong>Welcome to Image Factory! You can upload your image and then generate your own image with the prompt you input.<br>you can try many times to choose the most satisfied picture.</strong>
             </p>
         </div>
+
+        
 
         <div class="row mb-4">
             <!-- 图片上传区域 -->
@@ -103,17 +134,77 @@
 
     </div>
 
+    <!-- 登录模态框 -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Log in</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-2">Log in</button>
+                    </form>
+                    <div class="text-center">
+                        <p class="mb-0">no account?<button class="btn btn-link" onclick="switchToSignup()">click to sign up</button></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册模态框 -->
+    <div class="modal fade" id="signupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sign up</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="signupForm">
+                        <div class="mb-3">
+                            <label for="signupEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="signupEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="signupPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="signupPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Sign up</button>
+                    </form>
+                    <div class="text-center">
+                        <p class="mb-0">has account?<button class="btn btn-link" onclick="switchToLogin()">click to login</button></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
         <div id="paymentSuccessToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
             <div class="toast-header bg-success text-white">
-                <strong class="me-auto">支付成功</strong>
+                <strong class="me-auto">payment successful</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-                支付已完成，页面即将刷新...
+                payment complete, page will refresh shortly...
             </div>
         </div>
     </div>
@@ -121,11 +212,11 @@
     <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
         <div id="paymentFailedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
             <div class="toast-header bg-success text-white">
-                <strong class="me-auto">支付失败</strong>
+                <strong class="me-auto">payment failed</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-                支付未完成，页面即将刷新...
+                payment incomplete, page will refresh shortly...
             </div>
         </div>
     </div>
@@ -133,13 +224,14 @@
     <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
         <div id="paymentFailedTimeoutToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
             <div class="toast-header bg-success text-white">
-                <strong class="me-auto">支付超时</strong>
+                <strong class="me-auto">payment timed out</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-                支付未完成，页面即将刷新...
+                payment incomplete, page will refresh shortly...
             </div>
         </div>
     </div>
+    
 </body>
 </html>
