@@ -42,7 +42,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         .then(response => response.json())
         .then(response => {
             if (response.ok) {
-                location.reload();
+                // 不要刷新整个页面,而是只更新导航栏
+                updateNavbarAfterLogin(email);
+                // 关闭登录模态框
+                const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                loginModal.hide();
             } else {
                 alert(response.msg);
             }
@@ -52,6 +56,28 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         alert('Login failed. Please try again.');
     }
 });
+
+// 添加更新导航栏的函数
+function updateNavbarAfterLogin(email) {
+    // 隐藏登录和注册按钮
+    document.getElementById('loginButton').style.display = 'none';
+    document.getElementById('signupButton').style.display = 'none';
+    
+    // 显示用户下拉菜单
+    const userDropdown = document.createElement('div');
+    userDropdown.className = 'dropdown';
+    userDropdown.innerHTML = `
+        <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            ${email}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><button class="dropdown-item" onclick="handleLogout()">Log out</button></li>
+        </ul>
+    `;
+    
+    // 添加到导航栏
+    document.querySelector('.navbar .d-flex:last-child').appendChild(userDropdown);
+}
 
 
 // 添加注册表单处理
@@ -147,7 +173,7 @@ async function handleLogout() {
         });
 
         if (response.ok) {
-            location.reload();
+            updateNavbarAfterLogout();
         } else {
             alert('Logout failed. Please try again.');
         }
@@ -155,4 +181,17 @@ async function handleLogout() {
         console.error('Logout error:', error);
         alert('Logout failed. Please try again.');
     }
+}
+
+// 添加登出后更新导航栏的函数
+function updateNavbarAfterLogout() {
+    // 移除用户下拉菜单
+    const userDropdown = document.querySelector('.navbar .dropdown');
+    if (userDropdown) {
+        userDropdown.remove();
+    }
+    
+    // 显示登录和注册按钮
+    document.getElementById('loginButton').style.display = '';
+    document.getElementById('signupButton').style.display = '';
 }

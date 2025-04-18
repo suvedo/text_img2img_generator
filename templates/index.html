@@ -54,25 +54,16 @@
         </div>
 
         <div class="row mb-4">
-            <!-- 文本输入区域 -->
-            <div class="col-md-6">
-                <div class="card mb-4" style="height: 100%;">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">input your prompt</h5>
-                        <textarea id="textInput" class="form-control flex-grow-1" rows="5" style="resize: none;"></textarea>
-                    </div>
-                </div>
-            </div>
-        
             <!-- Prompt 模板区域 -->
-            <div class="col-md-6">
-                <div class="card mb-4" style="height: 100%;">
+            <div class="col-12">
+                <div class="card mb-4">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">prompt templates</h5>
                         <ul class="list-group flex-grow-1" style="overflow-y: auto;">
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">The image showcases a dynamic fantasy character with long, flowing pink hair, fox-like ears, and a confident pose. She wears a red and gold outfit with intricate detailing, including a short, asymmetrical top and high-waisted dark leggings, exposing her midriff. She gracefully wields a large, ornate parasol adorned with red and gold, with a ribbon and a hanging bell tied near the handle. The background is filled with warm, glowing light, floating autumn leaves, and blurred lanterns, creating a festive, magical ambiance. The character’s fox tail, confident expression, and dynamic movement add to the sense of energy and enchantment in the scene. The overall color palette is warm, with rich reds, golds, and oranges dominating the image.</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere. She wears ornate, golden armor pieces and a flowing, vibrant costume in orange, blue, and gold hues. Her long, dark hair is adorned with intricate golden headpieces, and she delicately plays a stylized string instrument resembling a pipa or lute. Surrounding her are swirling ribbons of light and color, which seem to dance with her movement. The background resembles a cosmic mural, blending starry skies with a painterly landscape of clouds and mythic patterns. The entire composition conveys elegance, motion, and divinity, suggesting she may be a goddess, spirit, or celestial muse drawn from Eastern mythology or fantasy art.</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A masterpiece of dreamy photography. The girl holds a glowing glass jar in her hands, which emits a soft yellow light, illuminating her face and the surrounding environment. She wears a white lace dress with blue and pink decorations and a light blue bow tied around her waist. The girl wears a white headdress dotted with blue and pink flowers and carries twinkling blue wings on her back. Behind the girl, you can see a vast sea of ​​flowers, which sparkle with pink and gold light and are scattered on the green grass. The sky is full of sparkling stars, from the upper left corner to the lower right corner, as if the Milky Way is scattered in the night sky. The overall light is soft and full of magical colors, making the whole picture look like a fairy tale world.</li>
                             <li class="list-group-item prompt-template" style="cursor: pointer;">Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, high quality, sharp focus,</li>
-                            <li class="list-group-item prompt-template" style="cursor: pointer;">A futuristic cityscape at night</li>
-                            <li class="list-group-item prompt-template" style="cursor: pointer;">A serene beach with crystal clear water</li>
                             <li class="list-group-item prompt-template" style="cursor: pointer;">A beautiful girl reading book, high quality.</li>
                         </ul>
                     </div>
@@ -82,11 +73,11 @@
 
         <div class="row mb-4">
             <!-- 图片上传区域 -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-body">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
                         <h5 class="card-title">Upload your image</h5>
-                        <div class="preview-area mt-3" id="preview">
+                        <div class="preview-area mt-3 flex-grow-1" id="preview">
                             <input type="file" id="imageUpload" accept="image/*" class="form-control d-none">
                             <div class="upload-container text-center" id="uploadContainer">
                                 <label for="imageUpload" class="upload-label">
@@ -95,35 +86,38 @@
                                 </label>
                             </div>
                             <div class="image-preview-container d-none" id="imagePreviewContainer">
-                                <!-- 预览图片将在这里显示 -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-
-            <!-- 图片生成预览区域 -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Generated image preview</h5>
-                        <div class="generated-preview-area mt-3" id="generatedPreview">
-                            <p class="text-muted">Your generated image will appear here</p>
-                        </div>
+        
+            <!-- 文本输入和按钮区域 -->
+            <div class="col-md-9">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">input your prompt</h5>
+                        <textarea id="textInput" class="form-control flex-grow-1 mb-3" style="resize: none;"></textarea>
+                        <button id="generateButton" class="btn btn-primary btn-lg" onclick="handleSubmit()">
+                            <i class="fas fa-magic me-2"></i>generate image
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-
-        
-
-        <!-- 操作按钮 -->
-        <div class="d-grid gap-2">
-            <button id="generateButton" class="btn btn-primary btn-lg" onclick="handleSubmit()">generate image</button>
-        </div>
-
     </div>
+
+    <!-- 图片生成预览区域 -->
+    <!-- <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Generated image preview</h5>
+                <div class="generated-preview-area mt-3" id="generatedPreview">
+                    <p class="text-muted">Your generated image will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

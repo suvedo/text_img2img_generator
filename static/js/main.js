@@ -211,24 +211,3 @@ function startPaymentPolling(userId, orderType, outTradeNo) {
     // 开始轮询
     poll();
 }
-
-
-// // 图片预览功能
-// document.getElementById('imageUpload').addEventListener('change', function(e) {
-//     const preview = document.getElementById('preview');
-//     preview.innerHTML = '';
-    
-//     if (this.files && this.files[0]) {
-//         const img = document.createElement('img');
-//         img.classList.add('preview-image');
-//         img.src = URL.createObjectURL(this.files[0]);
-//         preview.appendChild(img);
-//     }
-// });
-
-// document.querySelectorAll('.prompt-template').forEach(item => {
-//     item.addEventListener('click', function() {
-//         const textInput = document.getElementById('textInput');
-//         textInput.value = this.textContent; // 将模板内容填充到输入框
-//     });
-// });

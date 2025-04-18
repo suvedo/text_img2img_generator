@@ -22,6 +22,10 @@ body {
     padding-top: var(--navbar-height);
 }
 
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
 
 /* 卡片样式统一 */
 .card {
@@ -32,6 +36,15 @@ body {
     box-shadow: var(--glass-shadow);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 卡片标题统一样式 */
@@ -269,17 +282,30 @@ body {
 
 /* 文本输入框样式 */
 #textInput {
-    border-radius: 15px;
-    padding: 15px;
-    border: 2px solid rgba(100, 223, 223, 0.2);
+    min-height: 250px;  /* 调整文本框高度 */
+    background: rgba(248, 249, 250, 0.7);
+    border: 1px solid rgba(100, 223, 223, 0.2);
+    border-radius: 10px;
+    padding: 1rem;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.9);
 }
 
 #textInput:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(100, 223, 223, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(100, 223, 223, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+#generateButton {
+    height: 50px;  /* 设置按钮高度 */
+    background: var(--gradient-primary);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+#generateButton:hover {
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(100, 223, 223, 0.3);
 }
 
 /* 预览区提示文本样式 */
@@ -329,6 +355,40 @@ h1 {
     background: rgba(100, 223, 223, 0.1);
     transform: translateX(5px);
     box-shadow: 0 4px 15px rgba(100, 223, 223, 0.15);
+}
+
+.list-group-item.prompt-template {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(100, 223, 223, 0.2);
+    transition: all 0.3s ease;
+}
+
+.list-group-item.prompt-template:hover {
+    background: rgba(100, 223, 223, 0.05);
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+}
+
+.list-group {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+/* 自定义滚动条样式 */
+.list-group::-webkit-scrollbar {
+    width: 6px;
+}
+
+.list-group::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
+.list-group::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
 }
 
 /* 模态框样式 */
