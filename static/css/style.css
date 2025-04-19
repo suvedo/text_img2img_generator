@@ -500,3 +500,46 @@ h1 {
         font-size: 1rem;
     }
 }
+
+/* User Cases 样式 */
+.user-cases-container {
+    padding: 1rem 0;
+}
+
+.user-case-item {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(100, 223, 223, 0.2);
+    transition: all 0.3s ease;
+}
+
+.user-case-item:last-child {
+    border-bottom: none;
+}
+
+.user-case-item:hover {
+    background: rgba(248, 249, 250, 0.7);
+}
+
+.user-case-item img {
+    max-height: 200px;
+    object-fit: cover;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.user-case-item img:hover {
+    transform: scale(1.05);
+}
+
+.prompt-text {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 1rem;
+    height: 100%;
+    border: 1px solid rgba(100, 223, 223, 0.2);
+}
+
+/* 平滑滚动 */
+html {
+    scroll-behavior: smooth;
+}

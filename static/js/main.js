@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', function() {
             textInput.value = this.textContent;
         });
     });
+
+    document.querySelector('a[href="#userCases"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        const userCasesSection = document.getElementById('userCases');
+        userCasesSection.scrollIntoView({ behavior: 'smooth' });
+    });
 });
 
 function initializeImageUpload() {
