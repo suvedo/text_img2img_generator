@@ -1,15 +1,16 @@
-import { useState, ChangeEvent } from 'react'
-import { useSession, signIn } from 'next-auth/react'
+import { useState, ChangeEvent, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import Head from 'next/head'
-
 import Navbar from '../components/Navbar'
-
+import LoginModal from '../components/LoginModal'
 
 export default function Home() {
   const { data: session } = useSession()
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string>('')
+  const [previewUrl, setPreviewUrl] = useState('')
   const [prompt, setPrompt] = useState('')
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
 
   // 模板数据
   const promptTemplates = [
@@ -20,12 +21,105 @@ export default function Home() {
     "A beautiful girl reading book, high quality."
   ]
 
+  // 在客户端初始化时恢复保存的状态
+  useEffect(() => {
+    if (!isInitialized) {
+      const savedPreviewUrl = localStorage.getItem('savedPreviewUrl')
+      const savedPrompt = localStorage.getItem('savedPrompt')
+      const savedImageBase64 = localStorage.getItem('savedImageBase64')
+
+      if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
+      if (savedPrompt) setPrompt(savedPrompt)
+      
+      if (savedImageBase64) {
+        fetch(savedImageBase64)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], 'restored-image', { type: blob.type })
+            setImageFile(file)
+          })
+          .catch(console.error)
+      }
+
+      setIsInitialized(true)
+    }
+  }, [isInitialized])
+
+  // 在组件挂载时检查是否有保存的base64图片
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPreviewUrl = localStorage.getItem('savedPreviewUrl')
+      const savedPrompt = localStorage.getItem('savedPrompt')
+      const savedImageBase64 = localStorage.getItem('savedImageBase64')
+
+      if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
+      if (savedPrompt) setPrompt(savedPrompt)
+      if (savedImageBase64) {
+        // 将base64转换回File对象
+        fetch(savedImageBase64)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], 'restored-image', { type: blob.type })
+            setImageFile(file)
+          })
+          .catch(console.error)
+      }
+    }
+  }, [])
+
+  // 保存状态到localStorage
+  const saveStateToStorage = () => {
+    if (imageFile) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        localStorage.setItem('savedImageBase64', reader.result as string)
+      }
+      reader.readAsDataURL(imageFile)
+    }
+    if (previewUrl) {
+      localStorage.setItem('savedPreviewUrl', previewUrl)
+    }
+    if (prompt) {
+      localStorage.setItem('savedPrompt', prompt)
+    }
+  }
+
+  // 在状态改变时保存
+  useEffect(() => {
+    if (isInitialized) {
+      saveStateToStorage()
+    }
+  }, [imageFile, previewUrl, prompt, isInitialized])
+
+  // 清除保存的状态
+  const clearSavedState = () => {
+    localStorage.removeItem('savedImageBase64')
+    localStorage.removeItem('savedPreviewUrl')
+    localStorage.removeItem('savedPrompt')
+  }
+
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       setImageFile(file)
       setPreviewUrl(URL.createObjectURL(file))
+
+      if (file) {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          localStorage.setItem('savedImageBase64', reader.result as string)
+        }
+        reader.readAsDataURL(file)
+      }
+    
+      localStorage.setItem('savedPreviewUrl', previewUrl)
+      
     }
+  }
+
+  const updatePrompt = (newPrompt: string) => {
+    setPrompt(newPrompt)
+    localStorage.setItem('savedPrompt', newPrompt)
   }
 
   const handleSubmit = async () => {
@@ -47,8 +141,10 @@ export default function Home() {
       
       if (data.success) {
         // 处理成功响应
+        clearSavedState()
       } else if (!data.isAuthenticated) {
-        signIn()
+        // 打开登录模态框而不是直接调用 signIn()
+        setIsLoginModalOpen(true)
       } else {
         alert('failed:' + data.message);
       }
@@ -61,10 +157,12 @@ export default function Home() {
     <>
       <Head>
         <title>Image Factory</title>
-       </Head>
-
+      </Head>
       <Navbar />
-
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
       {/* 微信支付模态框 */}
       {/* <div id="qrCodeModal" className="modal payment-modal" tabIndex={-1}>
         <div className="modal-dialog modal-dialog-centered">
@@ -141,13 +239,13 @@ export default function Home() {
                     onChange={handleImageUpload}
                     className="form-control d-none"
                   />
-                  <div className={`upload-container text-center ${previewUrl ? 'd-none' : ''}`} id="uploadContainer">
+                  <div className={`upload-container text-center ${previewUrl && imageFile ? 'd-none' : ''}`} id="uploadContainer">
                     <label htmlFor="imageUpload" className="upload-label">
                       <i className="fas fa-cloud-upload-alt"></i>
                       <span>click to upload</span>
                     </label>
                   </div>
-                  <div className={`image-preview-container ${previewUrl ? '' : 'd-none'}`} id="imagePreviewContainer">
+                  <div className={`image-preview-container ${previewUrl && imageFile ? '' : 'd-none'}`} id="imagePreviewContainer">
                     {previewUrl && (
                       <div className="preview-wrapper position-relative">
                         <img src={previewUrl} className="preview-image" alt="Preview" />
@@ -156,6 +254,8 @@ export default function Home() {
                           onClick={() => {
                             setImageFile(null)
                             setPreviewUrl('')
+                            localStorage.removeItem('savedImageBase64')
+                            localStorage.removeItem('savedPreviewUrl')
                           }}
                         >
                           <i className="fas fa-times"></i>
@@ -178,7 +278,7 @@ export default function Home() {
                   className="form-control flex-grow-1 mb-3"
                   style={{ resize: 'none' }}
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => updatePrompt(e.target.value)}
                 />
                 <button 
                   className="btn btn-primary btn-lg"

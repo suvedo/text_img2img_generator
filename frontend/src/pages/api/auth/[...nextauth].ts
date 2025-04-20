@@ -27,9 +27,13 @@ export const authOptions: AuthOptions = {
       clientSecret: process.env.GITHUB_SECRET!,
       authorization: {
         params: {
-          // 增加超时时间
-          timeout: 10000
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
         }
+      },
+      httpOptions: {
+        timeout: 10000 // 增加到 10 秒
       }
     }),
     GoogleProvider({
