@@ -11,3 +11,5 @@ rm -rf node_modules package-lock.json
 
 # 重新安装（确保网络通畅）
 npm install --force
+
+# npm install --save-dev @types/react-dom

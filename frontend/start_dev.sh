@@ -9,6 +9,8 @@ fi
 # 确保 tmp 目录存在
 mkdir -p tmp
 
+ln -snf .env.local.dev .env.local
+
 # 启动 Next.js 服务（开发模式）
 echo "Starting Next.js service..."
 nohup npm run dev > ./tmp/next.log 2>&1 & echo $! > ./tmp/next.pid
