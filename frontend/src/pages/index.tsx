@@ -133,7 +133,8 @@ export default function Home() {
     formData.append('text', prompt)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/process`, {
+      // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/process`, {
+        const res = await fetch('/api/process', {
         method: 'POST',
         body: formData
       })
