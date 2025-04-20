@@ -2,10 +2,14 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+import LoginModal from './LoginModal'
+
 export default function Navbar() {
   const { data: session } = useSession()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,13 +45,17 @@ export default function Navbar() {
           </div>
           ) : (
             <>
-              <button className="nav-link mx-2" onClick={() => signIn()}>
-                Log in
-              </button>
-              <button className="nav-link" onClick={() => signIn()}>
-                Sign up
-              </button>
-            </>
+            <button className="nav-link mx-2" onClick={() => setIsLoginModalOpen(true)}>
+              Log in
+            </button>
+            {/* <button className="nav-link" onClick={() => setIsLoginModalOpen(true)}>
+              Sign up
+            </button> */}
+            <LoginModal 
+              isOpen={isLoginModalOpen} 
+              onClose={() => setIsLoginModalOpen(false)} 
+            />
+          </>
           )}
         </div>
       </div>

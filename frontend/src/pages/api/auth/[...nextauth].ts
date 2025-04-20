@@ -73,36 +73,41 @@ export const authOptions: AuthOptions = {
         return session
     },
     // 登录回调
-    async signIn({ 
-        user, 
-        account, 
-        profile, 
-        email, 
-        credentials 
-      }: { 
+    async signIn({ user, account, profile }: { 
         user: User | AdapterUser, 
         account: Account | null, 
         profile?: Profile, 
         email?: { verificationRequest?: boolean } | undefined, 
         credentials?: Record<string, any> | null 
       }) {
-        return true // 允许所有用户登录
+        try {
+          return true
+        } catch (error) {
+          console.error('Sign in error:', error)
+          return false
+        }
     },
     // 重定向回调
     async redirect({ url, baseUrl }: { 
       url: string, 
       baseUrl: string 
     }) {
-      console.log('Redirect URL:', url)
+      // 如果 URL 包含错误参数，重定向到错误页面
+      const urlObj = new URL(url.startsWith('http') ? url : `${baseUrl}${url}`)
+      if (urlObj.searchParams.has('error')) {
+        return `${baseUrl}/auth/error?error=${urlObj.searchParams.get('error')}`
+      }
+
+      // 标准重定向逻辑
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`
-      }
-      else if (new URL(url).origin === baseUrl) {
+      } else if (new URL(url).origin === baseUrl) {
         return url
       }
       return baseUrl
     }
   },
+
   pages: {
     signIn: '/auth/signin', // 自定义登录页面路径
     error: '/auth/error', // 错误页面

@@ -10,7 +10,7 @@ fi
 mkdir -p tmp
 
 # 启动 Next.js 服务（开发模式）
-echo "Staring Next.js service..."
+echo "Starting Next.js service..."
 nohup npm run dev > ./tmp/next.log 2>&1 & echo $! > ./tmp/next.pid
 
 
