@@ -9,7 +9,7 @@ fi
 # 确保 tmp 目录存在
 mkdir -p tmp
 
-ln -snf .env.prod.dev .env.local
+ln -snf .env.local.prod .env.local
 
 # 启动 Next.js 服务（开发模式）
 # echo "Starting Next.js service..."
