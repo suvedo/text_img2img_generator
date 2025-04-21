@@ -5,20 +5,10 @@ const nextConfig = {
   devIndicators: {
     buildActivity: false
   },
-  async rewrites() {
-    return [
-      {
-        source: '/gen_img/:path*',
-        destination: 'http://127.0.0.1:8000/gen_img/:path*',
-        // 添加代理配置
-        has: [{
-          type: 'header',
-          key: 'Accept'
-        }]
-      }
-    ]
+  webpack: (config, { isServer }) => {
+    // 自定义 webpack 配置
+    return config
   },
-  // 添加服务器配置
   serverOptions: {
     // 设置较长的超时时间
     timeout: 600000, // 10分钟

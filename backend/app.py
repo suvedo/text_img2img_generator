@@ -21,12 +21,18 @@ from database.db_model import db
 from account import user_account
 
 app = Flask(__name__)
-CORS(app, 
-     supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization"],
-     expose_headers=["Access-Control-Allow-Origin"],
-     methods=["GET", "POST", "OPTIONS"]
-)
+CORS(app, resources={
+    r"/gen_img/*": {
+        "origins": [
+            "http://localhost:3000",  # 开发环境
+            "http://207.148.19.172:3000"  # 生产环境
+        ],
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type", "Accept"],
+        "supports_credentials": True,
+        "max_age": 600
+    }
+})
 
 app.config.from_pyfile('config.py')
 

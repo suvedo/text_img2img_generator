@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Navbar from '../components/Navbar'
 import LoginModal from '../components/LoginModal'
 import { assert } from 'console'
+import { API_BASE_URL } from '../config'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -164,7 +165,7 @@ export default function Home() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 600000); // 10分钟超时
 
-        const res = await fetch('/gen_img/process', {
+        const res = await fetch(`${API_BASE_URL}/gen_img/process`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -174,7 +175,7 @@ export default function Home() {
           signal: controller.signal
         }).catch(error => {
           if (error.name === 'AbortError') {
-            throw new Error('Request timed out after 5 minutes');
+            throw new Error('Request timed out after 10 minutes');
           }
           throw error;
         });
@@ -182,7 +183,8 @@ export default function Home() {
         clearTimeout(timeoutId);
 
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          const errorText = await res.text();
+          throw new Error(`HTTP error! status: ${res.status}, message: ${errorText}`);
         }
         
         const data = await res.json();
@@ -213,7 +215,7 @@ export default function Home() {
   const handleDownload = () => {
     if (generatedImagePath) {
       const filename = generatedImagePath.split('/').pop()
-      window.open(`/gen_img/download/${filename}`, '_blank')
+      window.open(`${API_BASE_URL}/gen_img/download/${filename}`, '_blank')
     }
   }
 
@@ -352,7 +354,7 @@ export default function Home() {
                             {generatedImagePath ? (
                               <div className="text-center">
                                 <img 
-                                  src={`/gen_img/output/${generatedImagePath}`}
+                                  src={`${API_BASE_URL}/gen_img/output/${generatedImagePath}`}
                                   alt="Generated image" 
                                   className="img-fluid mb-3"
                                   style={{ maxWidth: '100%', maxHeight: '500px' }}
