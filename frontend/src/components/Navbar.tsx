@@ -24,6 +24,7 @@ export default function Navbar() {
       <div className="container-fluid">
         <div className="d-flex align-items-center">
           <Link href="/" className="navbar-brand">Home</Link>
+          <Link href="#promptTemplates" className="nav-link">Prompt Templates</Link>
           <Link href="#userCases" className="nav-link">User Cases</Link>
           <button className="nav-link" id="pricingButton">Pricing</button>
         </div>

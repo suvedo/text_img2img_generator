@@ -19,7 +19,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       alert('Passwords do not match')
       return
     }
-    // TODO: 实现用户名密码登录
+    
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false
+      })
+      
+      if (result?.error) {
+        alert(result.error)
+      } else {
+        onClose()
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('An error occurred during login')
+    }
   }
 
   // 切换登录/注册模式时重置密码字段
@@ -126,14 +142,40 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <div className="d-grid gap-2">
                 <button
                   className="btn btn-dark"
-                  onClick={() => signIn('github', { callbackUrl: '/' })}
+                  onClick={async (e) => {
+                    e.preventDefault()
+                    try {
+                      const result = await signIn('github', { 
+                        callbackUrl: window.location.origin,
+                        redirect: false
+                      })
+                      if (!result?.error) {
+                        onClose()
+                      }
+                    } catch (error) {
+                      console.error('GitHub login error:', error)
+                    }
+                  }}
                 >
                   <i className="fab fa-github me-2"></i>
                   Continue with GitHub
                 </button>
                 <button
                   className="btn btn-danger"
-                  onClick={() => signIn('google', { callbackUrl: '/' })}
+                  onClick={async (e) => {
+                    e.preventDefault()
+                    try {
+                      const result = await signIn('google', { 
+                        callbackUrl: window.location.origin,
+                        redirect: false
+                      })
+                      if (!result?.error) {
+                        onClose()
+                      }
+                    } catch (error) {
+                      console.error('Google login error:', error)
+                    }
+                  }}
                 >
                   <i className="fab fa-google me-2"></i>
                   Continue with Google

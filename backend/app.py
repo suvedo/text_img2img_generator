@@ -20,7 +20,12 @@ from database.db_model import db
 from account import user_account
 
 app = Flask(__name__)
-CORS(app)  # 启用跨域支持
+CORS(app, 
+     resources={r"/api/*": {"origins": ["http://localhost:3000"], "supports_credentials": True}},
+     allow_headers=["Content-Type"],
+     expose_headers=["Access-Control-Allow-Origin"],
+     methods=["GET", "POST", "OPTIONS"]
+)
 
 app.config.from_pyfile('config.py')
 
@@ -48,7 +53,13 @@ def process():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got process request, request_id:{request_id}")
     auth = False
+    
     try:
+        # 从请求中获取用户信息
+        user_data = json.loads(request.form.get('user', '{}'))
+        # 将用户信息存入 session
+        session['user'] = user_data
+        
         if (not user_account.check_auth(request_id, session)):
             logger.info(f"request_id:{request_id}, user not login")
             return jsonify(success=False, isAuthenticated=auth, message="用户未登录")
@@ -57,7 +68,7 @@ def process():
         logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
         return jsonify(success=False, isAuthenticated=auth, message=str(e))
         
-    logger.info(f"request_id:{request_id}, user_id:{session['user_id']}, email:{session['email']}")
+    logger.info(f"request_id:{request_id}, user:{session['user']}")
         
     try:
         # 处理图片上传

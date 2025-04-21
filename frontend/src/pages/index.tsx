@@ -5,12 +5,19 @@ import Navbar from '../components/Navbar'
 import LoginModal from '../components/LoginModal'
 
 export default function Home() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [prompt, setPrompt] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  // Debug session state
+  useEffect(() => {
+    console.log('Session status:', status)
+    console.log('Session data:', session)
+  }, [session, status])
 
   // 模板数据
   const promptTemplates = [
@@ -128,29 +135,58 @@ export default function Home() {
       return
     }
 
+    // 等待 session 加载完成
+    if (status === 'loading') {
+      return
+    }
+
+    // 检查登录状态
+    if (status !== 'authenticated' || !session?.user) {
+      setIsLoginModalOpen(true)
+      return
+    }
+
     const formData = new FormData()
     formData.append('image', imageFile)
     formData.append('text', prompt)
+    // 添加用户信息
+    formData.append('user', JSON.stringify({
+      email: session.user.email,
+      name: session.user.name,
+      id: session.user.id
+    }))
+
+    setIsGenerating(true)
 
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/process`, {
-        // const res = await fetch('/api/process', {
-        method: 'POST',
-        body: formData
-      })
-      const data = await res.json()
-      
-      if (data.success) {
-        // 处理成功响应
-        clearSavedState()
-      } else if (!data.isAuthenticated) {
-        // 打开登录模态框而不是直接调用 signIn()
-        setIsLoginModalOpen(true)
-      } else {
-        alert('failed:' + data.message);
-      }
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          },
+          body: formData
+        })
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+        
+        const data = await res.json()
+        
+        if (data.success) {
+          // 处理成功响应
+          clearSavedState()
+        } else if (!data.isAuthenticated) {
+          setIsLoginModalOpen(true)
+        } else {
+          console.log("generat image failed")
+          alert('failed:' + data.message);
+        }
     } catch (error) {
       console.error(error)
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -202,29 +238,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-
-        {/* Prompt 模板区域 */}
-        <div className="row mb-4">
-          <div className="col-12">
-            <div className="card mb-4">
-              <div className="card-body d-flex flex-column">
-                <h5 className="card-title">prompt templates</h5>
-                <ul className="list-group flex-grow-1" style={{ overflowY: 'auto' }}>
-                  {promptTemplates.map((template, index) => (
-                    <li 
-                      key={index}
-                      className="list-group-item prompt-template" 
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => setPrompt(template)}
-                    >
-                      {template}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        
 
         <div className="row mb-4">
           {/* 图片上传区域 */}
@@ -284,9 +298,55 @@ export default function Home() {
                 <button 
                   className="btn btn-primary btn-lg"
                   onClick={handleSubmit}
+                  disabled={isGenerating}
                 >
-                  <i className="fas fa-magic me-2"></i>generate image
+                  <i className="fas fa-magic me-2"></i>
+                  {isGenerating ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      generating...
+                    </>
+                  ) : (
+                    'generate image'
+                  )}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+       {/* Generated image preview */}
+        <div className="row mb-4">
+          <div className="col-md-12">
+                  <div className="card mb-4">
+                      <div className="card-body">
+                          <h5 className="card-title">Generated image preview</h5>
+                          <div className="generated-preview-area mt-3" id="generatedPreview">
+                              <p className="text-muted">Your generated image will appear here</p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+        </div>
+
+        {/* Prompt 模板区域 */}
+        <div id="promptTemplates" className="row mb-4">
+          <div className="col-12">
+            <div className="card mb-4">
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title">prompt templates</h5>
+                <ul className="list-group flex-grow-1" style={{ overflowY: 'auto' }}>
+                  {promptTemplates.map((template, index) => (
+                    <li 
+                      key={index}
+                      className="list-group-item prompt-template" 
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setPrompt(template)}
+                    >
+                      {template}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>

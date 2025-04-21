@@ -23,8 +23,8 @@ def is_valid_password(password):
     return True, ""
 
 def check_auth(request_id, session):
-    return 'user_id' in session
-    
+    return 'user' in session and 'email' in session['user']
+
 def login(request_id, data, session):
     email = data.get('email')
     password = data.get('password')
