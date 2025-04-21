@@ -21,8 +21,8 @@ from account import user_account
 
 app = Flask(__name__)
 CORS(app, 
-     resources={r"/api/*": {"origins": ["http://localhost:3000"], "supports_credentials": True}},
-     allow_headers=["Content-Type"],
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization"],
      expose_headers=["Access-Control-Allow-Origin"],
      methods=["GET", "POST", "OPTIONS"]
 )
@@ -48,7 +48,7 @@ os.makedirs(os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER']), e
 #                          is_logged_in=is_logged_in,
 #                          user_email=user_email)
 
-@app.route('/api/process', methods=['POST'])
+@app.route('/gen_img/process', methods=['POST'])
 def process():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got process request, request_id:{request_id}")

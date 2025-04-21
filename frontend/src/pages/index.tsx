@@ -159,7 +159,7 @@ export default function Home() {
     setIsGenerating(true)
 
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/process`, {
+        const res = await fetch('/gen_img/process', {
           method: 'POST',
           credentials: 'include',
           headers: {
