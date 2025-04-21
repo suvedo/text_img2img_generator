@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Navbar from '../components/Navbar'
 import LoginModal from '../components/LoginModal'
+import { assert } from 'console'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -196,13 +197,14 @@ export default function Home() {
         }
     } catch (error) {
       console.error('Error during image generation:', error);
-      if (error.message.includes('timed out')) {
-        alert('The request took too long. Please try again.');
-      } else if (error.code === 'ECONNRESET') {
-        alert('The connection was reset. Please try again.');
-      } else {
-        alert('An error occurred: ' + error.message);
-      }
+      alert('Error during image generation:' + error)
+      // if (error.message.includes('timed out')) {
+      //   alert('The request took too long. Please try again.');
+      // } else if (error.code === 'ECONNRESET') {
+      //   alert('The connection was reset. Please try again.');
+      // } else {
+      //   alert('An error occurred: ' + error.message);
+      // }
     } finally {
       setIsGenerating(false);
     }
