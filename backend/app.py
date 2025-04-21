@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, \
-    jsonify, send_file, session, Blueprint
+    jsonify, send_file, session, Blueprint, send_from_directory
 from flask_cors import CORS
 #from werkzeug.utils import secure_filename
 import json
@@ -139,7 +139,7 @@ def process():
         return jsonify(
             success=True, 
             isAuthenticated=auth,
-            img_path=img_path,
+            img_id=img_path.split('/')[-1]
         )
         
     except Exception as e:
@@ -303,6 +303,32 @@ def logout():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got logout request, request_id:{request_id}")
     return user_account.logout(request_id, session)
+
+
+@app.route('/gen_img/output/<path:filename>')
+def get_generated_image(filename):
+    try:
+        return send_from_directory(
+            os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER']), 
+            filename, 
+            as_attachment=False
+        )
+    except Exception as e:
+        logger.error(f"Error serving image {filename}: {str(e)}")
+        return jsonify(success=False, message="Image not found"), 404
+
+@app.route('/gen_img/download/<path:filename>')
+def download_generated_image(filename):
+    try:
+        return send_from_directory(
+            os.path.join(app.config['BASE_DIR'], app.config['OUTPUT_FOLDER']), 
+            filename, 
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        logger.error(f"Error downloading image {filename}: {str(e)}")
+        return jsonify(success=False, message="Image not found"), 404
 
 
 if __name__ == '__main__':

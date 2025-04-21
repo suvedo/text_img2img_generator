@@ -12,6 +12,7 @@ export default function Home() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [generatedImagePath, setGeneratedImagePath] = useState<string | null>(null)
 
   // Debug session state
   useEffect(() => {
@@ -175,18 +176,24 @@ export default function Home() {
         const data = await res.json()
         
         if (data.success) {
-          // 处理成功响应
-          clearSavedState()
+          setGeneratedImagePath(data.img_id)
         } else if (!data.isAuthenticated) {
           setIsLoginModalOpen(true)
         } else {
-          console.log("generat image failed")
+          console.log("generate image failed")
           alert('failed:' + data.message);
         }
     } catch (error) {
       console.error(error)
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleDownload = () => {
+    if (generatedImagePath) {
+      const filename = generatedImagePath.split('/').pop()
+      window.open(`/gen_img/download/${filename}`, '_blank')
     }
   }
 
@@ -322,7 +329,27 @@ export default function Home() {
                       <div className="card-body">
                           <h5 className="card-title">Generated image preview</h5>
                           <div className="generated-preview-area mt-3" id="generatedPreview">
+                            {generatedImagePath ? (
+                              <div className="text-center">
+                                <img 
+                                  src={`/gen_img/output/${generatedImagePath}`}
+                                  alt="Generated image" 
+                                  className="img-fluid mb-3"
+                                  style={{ maxWidth: '100%', maxHeight: '500px' }}
+                                />
+                                <div>
+                                  <button 
+                                    className="btn btn-primary"
+                                    onClick={handleDownload}
+                                  >
+                                    <i className="fas fa-download me-2"></i>
+                                    Download Image
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
                               <p className="text-muted">Your generated image will appear here</p>
+                            )}
                           </div>
                       </div>
                   </div>

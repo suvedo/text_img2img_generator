@@ -9,7 +9,7 @@ const nextConfig = {
     return [
       {
         source: '/gen_img/:path*',
-        destination: 'http://localhost:8000/gen_img/:path*'
+        destination: 'http://127.0.0.1:8000/gen_img/:path*'  // 使用 127.0.0.1 而不是 localhost
       }
     ]
   }
