@@ -160,33 +160,51 @@ export default function Home() {
     setIsGenerating(true)
 
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 600000); // 10分钟超时
+
         const res = await fetch('/gen_img/process', {
           method: 'POST',
           credentials: 'include',
           headers: {
             'Accept': 'application/json',
           },
-          body: formData
-        })
+          body: formData,
+          signal: controller.signal
+        }).catch(error => {
+          if (error.name === 'AbortError') {
+            throw new Error('Request timed out after 5 minutes');
+          }
+          throw error;
+        });
+
+        clearTimeout(timeoutId);
 
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
         
-        const data = await res.json()
+        const data = await res.json();
         
         if (data.success) {
-          setGeneratedImagePath(data.img_id)
+          setGeneratedImagePath(data.img_id);
         } else if (!data.isAuthenticated) {
-          setIsLoginModalOpen(true)
+          setIsLoginModalOpen(true);
         } else {
-          console.log("generate image failed")
-          alert('failed:' + data.message);
+          console.error("Generate image failed:", data.message);
+          alert('Failed to generate image: ' + data.message);
         }
     } catch (error) {
-      console.error(error)
+      console.error('Error during image generation:', error);
+      if (error.message.includes('timed out')) {
+        alert('The request took too long. Please try again.');
+      } else if (error.code === 'ECONNRESET') {
+        alert('The connection was reset. Please try again.');
+      } else {
+        alert('An error occurred: ' + error.message);
+      }
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
   }
 

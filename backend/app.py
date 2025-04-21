@@ -11,6 +11,7 @@ import io
 import asyncio
 
 import third_party.kolors_hf_req as kolors_hf_req
+import third_party.gpt_gen_img_req as gpt_gen_img_req
 import third_party.wechat_pay as wechat_pay
 from utils.log_util import logger
 from utils import random_util
@@ -78,62 +79,71 @@ def process():
         file = request.files['image']
         if file.filename == '':
             return jsonify(success=False, isAuthenticated=auth, message="未选择文件")
+
+        # 获取文本内容
+        text_content = request.form.get('text', '')
+        if not text_content:
+            return jsonify(success=False, isAuthenticated=auth, message="no text content provided")
+
+        logger.info(f"request_id:{request_id}, file_name:{file.filename}, text_content:{text_content}")
         
         # 保存原始图片
         # filename = secure_filename(file.filename)
         # upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         # file.save(upload_path)
 
-        # upload image to hauggingface space
-        upload_id = random_util.generate_random_str(11)
-        upload_hf_rsp = kolors_hf_req.upload_image_stream(request_id, app.config['KOLORS_HF_UPLOAD_IMG_URL'], file, upload_id)
-        path = upload_hf_rsp.json()[0] if upload_hf_rsp.status_code == 200 else None
+        if (random_util.generate_random_from0to1() < app.config['KOLORS_OR_GPT_THRES']):
+            logger.info(f"request_id:{request_id}, use kolors hf")
 
-        if not path:
-            return jsonify(success=False, isAuthenticated=auth, message="upload image failed")
+            # upload image to hauggingface space
+            upload_id = random_util.generate_random_str(11)
+            upload_hf_rsp = kolors_hf_req.upload_image_stream(request_id, app.config['KOLORS_HF_UPLOAD_IMG_URL'], file, upload_id)
+            path = upload_hf_rsp.json()[0] if upload_hf_rsp.status_code == 200 else None
 
-        # 获取文本内容
-        text_content = request.form.get('text', '')
-        if not text_content:
-            return jsonify(success=False, isAuthenticated=auth, message="no text content provided")
+            if not path:
+                return jsonify(success=False, isAuthenticated=auth, message="upload image failed")
+
+            session_hash = random_util.generate_random_str(10)
+            payload = app.config['KOLORS_HF_GEN_IMG_PAYLOAD']
+            payload["session_hash"] = session_hash
+            payload["data"][0]["orig_name"] = path.split("/")[-1]
+            payload["data"][0]["path"] = path
+            payload["data"][0]["url"] = app.config['KOLORS_HF_GEN_IMG_PAYLOAD_URL'].format(path=path)
+            payload["data"][2] = text_content
+            seed = random.randint(0, 999999)
+            payload["data"][3] = seed
+
+            logger.info(f"request_id:{request_id}, payload:{payload}")
+            gen_img_rsp = kolors_hf_req.http_post(request_id, app.config['KOLORS_HF_GEN_IMG_URL'], payload)
+            gen_img_url = None
+            if gen_img_rsp:
+                event_id = gen_img_rsp.get("event_id", None)
+                if event_id:
+                    stream_url = app.config['KOLORS_HF_GET_IMG_URL'].format(session_hash=session_hash)
+                    chunks = kolors_hf_req.http_get_stream(request_id, stream_url)
+                    for chunk in chunks:
+                        data = json.loads(chunk.split("data:")[1].strip())
+                        if data:
+                            if data.get("event_id", None) == event_id \
+                                and data.get("success", False) \
+                                and data.get("msg", None) == "process_completed":
+                                gen_img_url = data["output"]["data"][0]
+                                if gen_img_url:
+                                    gen_img_url = gen_img_url["url"]
+
+
+            logger.info(f"request_id:{request_id}, gen_img_url:{gen_img_url}")
+            if not gen_img_url:
+                return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
+            
+            img_path = download_file_from_hf(request_id, file.filename, gen_img_url)
         
-        logger.info(f"request_id:{request_id}, file_name:{file.filename}, text_content:{text_content}")
-        
-        session_hash = random_util.generate_random_str(10)
-        payload = app.config['KOLORS_HF_GEN_IMG_PAYLOAD']
-        payload["session_hash"] = session_hash
-        payload["data"][0]["orig_name"] = path.split("/")[-1]
-        payload["data"][0]["path"] = path
-        payload["data"][0]["url"] = app.config['KOLORS_HF_GEN_IMG_PAYLOAD_URL'].format(path=path)
-        payload["data"][2] = text_content
-        seed = random.randint(0, 999999)
-        payload["data"][3] = seed
+        else:
+            logger.info(f"request_id:{request_id}, use gpt gen image")
+            img_path = gpt_gen_img_req.gen_image(request_id, file, text_content, app.config, app.config['GPT_GEN_IMG_TEST'])
 
-        logger.info(f"request_id:{request_id}, payload:{payload}")
-        gen_img_rsp = kolors_hf_req.http_post(request_id, app.config['KOLORS_HF_GEN_IMG_URL'], payload)
-        gen_img_url = None
-        if gen_img_rsp:
-            event_id = gen_img_rsp.get("event_id", None)
-            if event_id:
-                stream_url = app.config['KOLORS_HF_GET_IMG_URL'].format(session_hash=session_hash)
-                chunks = kolors_hf_req.http_get_stream(request_id, stream_url)
-                for chunk in chunks:
-                    data = json.loads(chunk.split("data:")[1].strip())
-                    if data:
-                        if data.get("event_id", None) == event_id \
-                            and data.get("success", False) \
-                            and data.get("msg", None) == "process_completed":
-                            gen_img_url = data["output"]["data"][0]
-                            if gen_img_url:
-                                gen_img_url = gen_img_url["url"]
-
-
-        logger.info(f"request_id:{request_id}, gen_img_url:{gen_img_url}")
-        if not gen_img_url:
-            return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
-        
-        img_path = download_file_from_hf(request_id, file.filename, gen_img_url)
         if not img_path:
+            logger.error(f"request_id:{request_id}, generate image failed")
             return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
         
         return jsonify(
@@ -150,7 +160,8 @@ def process():
 def download_file_from_hf(request_id, upload_file_name, url):
     try:
         path = "-".join([
-            upload_file_name,
+            app.config['KOLORS_RES_FILE_PREFIX'],
+            upload_file_name.replace("-", "_"),
             request_id,
             random_util.generate_random_str(12),
             "gen_img."+url.split(".")[-1]
@@ -332,10 +343,13 @@ def download_generated_image(filename):
 
 
 if __name__ == '__main__':
-    # app.run(host="0.0.0.0", port=8000)
     from hypercorn.config import Config
     from hypercorn.asyncio import serve
 
     config = Config()
     config.bind = ["0.0.0.0:8000"]
+    config.keep_alive_timeout = 600  # 10分钟
+    config.worker_class = "asyncio"
+    config.graceful_timeout = 600
+    config.use_reloader = True
     asyncio.run(serve(app, config))

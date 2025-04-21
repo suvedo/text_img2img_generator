@@ -74,6 +74,9 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_generator'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# 小于KOLORS_OR_GPT_THRES时，使用Kolors Huggingface Space，否则使用GPT
+KOLORS_OR_GPT_THRES = 0.5
+
 # Kolors Huggingface Space配置
 KOLORS_HF_UPLOAD_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id
 KOLORS_HF_GEN_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/queue/join?__theme=system"
@@ -99,6 +102,14 @@ KOLORS_HF_GEN_IMG_PAYLOAD = {
 }
 KOLORS_HF_GEN_IMG_PAYLOAD_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/file={path}"
 KOLORS_HF_GET_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/queue/data?session_hash={session_hash}"
+KOLORS_RES_FILE_PREFIX = "TYPE1"
+
+# yunfan的gpt的配置
+GPT_GEN_IMG_URL = "https://yunfan-ye68--image-server-fastapi-app.modal.run/create_image"
+GPT_GEN_IMG_TEST = False
+GPT_GET_IMG_URL = "https://yunfan-ye68--image-server-fastapi-app.modal.run/images/{image_id}"
+GPT_RES_FILE_PREFIX = "TYPE2"
+
 
 # wechat pay configs
 WECHAT_PAY_NATIVE_DNS = "https://api.mch.weixin.qq.com"

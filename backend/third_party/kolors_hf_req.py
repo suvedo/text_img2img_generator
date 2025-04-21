@@ -6,10 +6,6 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from utils.log_util import logger
 from utils import random_util
 
-prompt =  """Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, 
-high quality, sharp focus,
-"""
-
 
 def upload_image_stream(request_id, url, file_stream, upload_id):
     """
@@ -169,6 +165,10 @@ def download_image(request_id, url: str, save_path: str = "downloaded_image.jpg"
 
 # 使用示例
 if __name__ == "__main__":
+
+    prompt =  """Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, 
+high quality, sharp focus,
+"""
 
     # file_path = "./data/input_images/test_ip.jpg"
     file_path = "./data/input_images/test_ip2.png"
