@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Factory</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/navbar.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/payment.css') }}" rel="stylesheet">
+</head>
+
+<!-- 引入导航栏组件 -->
+{% include 'components/navbar.html' %}
+
+<!-- 微信支付二维码弹窗 -->
+<div id="qrCodeModal" class="modal payment-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center w-100">
+                    <i class="fab fa-weixin me-2" style="color: #07C160;"></i>
+                    WeChat Payment
+                    <div class="small text-muted mt-2">Please complete payment within 15 minutes</div>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="qr-code-container">
+                    <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid mb-3">
+                    <div class="timer">
+                        <i class="far fa-clock me-1"></i>
+                        <span id="paymentTimer">15:00</span> remaining
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<body>
+    <div class="container mt-5">
+        <div class="container mt-3">
+            <div class="welcome-message">
+                <p class="text-center p-4 rounded-lg animate__animated animate__fadeIn">
+                    <span class="welcome-title">Welcome to Image Factory!</span>
+                    <span class="welcome-text">Upload your image and generate your own masterpiece with custom prompts.<br>
+                    Explore endless possibilities until you find your perfect creation.</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Prompt 模板区域 -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">prompt templates</h5>
+                        <ul class="list-group flex-grow-1" style="overflow-y: auto;">
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">The image showcases a dynamic fantasy character with long, flowing pink hair, fox-like ears, and a confident pose. She wears a red and gold outfit with intricate detailing, including a short, asymmetrical top and high-waisted dark leggings, exposing her midriff. She gracefully wields a large, ornate parasol adorned with red and gold, with a ribbon and a hanging bell tied near the handle. The background is filled with warm, glowing light, floating autumn leaves, and blurred lanterns, creating a festive, magical ambiance. The character’s fox tail, confident expression, and dynamic movement add to the sense of energy and enchantment in the scene. The overall color palette is warm, with rich reds, golds, and oranges dominating the image.</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere. She wears ornate, golden armor pieces and a flowing, vibrant costume in orange, blue, and gold hues. Her long, dark hair is adorned with intricate golden headpieces, and she delicately plays a stylized string instrument resembling a pipa or lute. Surrounding her are swirling ribbons of light and color, which seem to dance with her movement. The background resembles a cosmic mural, blending starry skies with a painterly landscape of clouds and mythic patterns. The entire composition conveys elegance, motion, and divinity, suggesting she may be a goddess, spirit, or celestial muse drawn from Eastern mythology or fantasy art.</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A masterpiece of dreamy photography. The girl holds a glowing glass jar in her hands, which emits a soft yellow light, illuminating her face and the surrounding environment. She wears a white lace dress with blue and pink decorations and a light blue bow tied around her waist. The girl wears a white headdress dotted with blue and pink flowers and carries twinkling blue wings on her back. Behind the girl, you can see a vast sea of ​​flowers, which sparkle with pink and gold light and are scattered on the green grass. The sky is full of sparkling stars, from the upper left corner to the lower right corner, as if the Milky Way is scattered in the night sky. The overall light is soft and full of magical colors, making the whole picture look like a fairy tale world.</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, high quality, sharp focus,</li>
+                            <li class="list-group-item prompt-template" style="cursor: pointer;">A beautiful girl reading book, high quality.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- 图片上传区域 -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Upload your image</h5>
+                        <div class="preview-area mt-3 flex-grow-1" id="preview">
+                            <input type="file" id="imageUpload" accept="image/*" class="form-control d-none">
+                            <div class="upload-container text-center" id="uploadContainer">
+                                <label for="imageUpload" class="upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>click to upload</span>
+                                </label>
+                            </div>
+                            <div class="image-preview-container d-none" id="imagePreviewContainer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 文本输入和按钮区域 -->
+            <div class="col-md-9">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">input your prompt</h5>
+                        <textarea id="textInput" class="form-control flex-grow-1 mb-3" style="resize: none;"></textarea>
+                        <button id="generateButton" class="btn btn-primary btn-lg" onclick="handleSubmit()">
+                            <i class="fas fa-magic me-2"></i>generate image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- 图片生成预览区域 -->
+            <!-- <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Generated image preview</h5>
+                        <div class="generated-preview-area mt-3" id="generatedPreview">
+                            <p class="text-muted">Your generated image will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+
+
+        <!-- User Cases 展示区域 -->
+        <div id="userCases" class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">User Cases</h5>
+                        <div class="user-cases-container">
+                            <!-- 单个案例 -->
+                            <div class="user-case-item">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <img src="/static/images/case1_original.jpg" class="img-fluid rounded" alt="Original Image">
+                                        <p class="text-muted mt-2">Original Image</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="prompt-text">
+                                            <p>The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere...</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <img src="/static/images/case1_generated.jpg" class="img-fluid rounded" alt="Generated Image">
+                                        <p class="text-muted mt-2">Generated Image</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 更多案例... -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
+        <div id="paymentSuccessToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">payment successful</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                payment complete, page will refresh shortly...
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
+        <div id="paymentFailedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">payment failed</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                payment incomplete, page will refresh shortly...
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-50 start-50 translate-middle" style="z-index: 9999;">
+        <div id="paymentFailedTimeoutToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">payment timed out</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                payment incomplete, page will refresh shortly...
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

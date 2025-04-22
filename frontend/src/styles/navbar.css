@@ -1,0 +1,141 @@
+:root {
+    --navbar-height: 70px;  /* 设置导航栏高度 */
+    /* 导航栏颜色 */
+    --navbar-bg: rgba(255, 255, 255, 0.9);
+    --navbar-bg-scrolled: rgba(35, 35, 35, 0.95);
+    --navbar-text-scrolled: #ffffff;
+}
+
+/* 品牌名称样式 */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.navbar-brand:hover {
+    color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+/* 导航栏样式 */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--navbar-height);
+    backdrop-filter: blur(10px);
+    background: var(--navbar-bg) !important;
+    box-shadow: var(--glass-shadow);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem 2rem;
+}
+
+/* 导航链接样式 */
+.navbar .nav-link {
+    color: var(--secondary-color);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+}
+
+/* 用户下拉菜单样式 */
+.dropdown-toggle {
+    background: transparent;
+    border: none;
+    color: var(--secondary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.dropdown-toggle:hover,
+.dropdown-toggle:focus {
+    background: rgba(100, 223, 223, 0.1);
+    color: var(--primary-color);
+}
+
+.dropdown-menu {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(100, 223, 223, 0.2);
+    border-radius: 12px;
+    box-shadow: var(--glass-shadow);
+}
+
+.dropdown-item {
+    color: var(--secondary-color);
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    margin: 0.2rem;
+}
+
+.dropdown-item:hover {
+    background: rgba(100, 223, 223, 0.1);
+    color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.navbar .nav-link:hover 
+{
+    background: rgba(100, 223, 223, 0.1);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+/* 添加滚动时的导航栏样式 */
+.navbar.scrolled {
+    background: var(--navbar-bg-scrolled) !important;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    height: calc(var(--navbar-height) - 10px);
+}
+
+/* 添加滚动时导航栏内元素的样式 */
+.navbar.scrolled .navbar-brand,
+.navbar.scrolled .nav-link,
+.navbar.scrolled .dropdown-toggle {
+    color: var(--navbar-text-scrolled);
+}
+.navbar.scrolled .nav-link:hover,
+.navbar.scrolled .dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+/* 滚动时的品牌名称悬停效果 */
+.navbar.scrolled .navbar-brand:hover {
+    text-shadow: 0 0 10px rgba(255, 154, 139, 0.3);
+}
+
+/* 更新滚动时的下拉菜单样式 */
+.navbar.scrolled .dropdown-menu {
+    background: var(--navbar-bg-scrolled);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar.scrolled .dropdown-item {
+    color: var(--navbar-text-scrolled);
+}
+
+.navbar.scrolled .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-color);
+}
+
+/* 添加过渡动画 */
+.navbar,
+.navbar *,
+.navbar.scrolled,
+.navbar.scrolled * {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

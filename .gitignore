@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+uploads/*
+!uploads/.gitignore
+
+static/output/*
+!static/output/.gitignore
