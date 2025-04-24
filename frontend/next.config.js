@@ -7,6 +7,10 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     // 自定义 webpack 配置
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    }
     return config
   },
   serverOptions: {

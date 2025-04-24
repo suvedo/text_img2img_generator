@@ -75,7 +75,7 @@ SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # 小于KOLORS_OR_GPT_THRES时，使用Kolors Huggingface Space，否则使用GPT
-KOLORS_OR_GPT_THRES = 0.5
+KOLORS_OR_GPT_THRES = 1.1
 
 # Kolors Huggingface Space配置
 KOLORS_HF_UPLOAD_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id

@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar'
 import LoginModal from '../components/LoginModal'
 import { assert } from 'console'
 import { API_BASE_URL } from '../config'
+import { AuroraText } from '@/components/magicui/aurora-text'
+import { TextRevealSimple } from '@/components/magicui/text-reveal-simple'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -15,6 +17,8 @@ export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImagePath, setGeneratedImagePath] = useState<string | null>(null)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [modalImage, setModalImage] = useState('')
 
   // Debug session state
   useEffect(() => {
@@ -24,58 +28,37 @@ export default function Home() {
 
   // 模板数据
   const promptTemplates = [
-    "The image showcases a dynamic fantasy character with long, flowing pink hair, fox-like ears, and a confident pose. She wears a red and gold outfit with intricate detailing, including a short, asymmetrical top and high-waisted dark leggings, exposing her midriff. She gracefully wields a large, ornate parasol adorned with red and gold, with a ribbon and a hanging bell tied near the handle. The background is filled with warm, glowing light, floating autumn leaves, and blurred lanterns, creating a festive, magical ambiance. The character’s fox tail, confident expression, and dynamic movement add to the sense of energy and enchantment in the scene. The overall color palette is warm, with rich reds, golds, and oranges dominating the image.",
+    "The image showcases a dynamic fantasy character with long, flowing pink hair, fox-like ears, and a confident pose. She wears a red and gold outfit with intricate detailing, including a short, asymmetrical top and high-waisted dark leggings, exposing her midriff. She gracefully wields a large, ornate parasol adorned with red and gold, with a ribbon and a hanging bell tied near the handle. The background is filled with warm, glowing light, floating autumn leaves, and blurred lanterns, creating a festive, magical ambiance. The character's fox tail, confident expression, and dynamic movement add to the sense of energy and enchantment in the scene. The overall color palette is warm, with rich reds, golds, and oranges dominating the image.",
     "The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere. She wears ornate, golden armor pieces and a flowing, vibrant costume in orange, blue, and gold hues. Her long, dark hair is adorned with intricate golden headpieces, and she delicately plays a stylized string instrument resembling a pipa or lute. Surrounding her are swirling ribbons of light and color, which seem to dance with her movement. The background resembles a cosmic mural, blending starry skies with a painterly landscape of clouds and mythic patterns. The entire composition conveys elegance, motion, and divinity, suggesting she may be a goddess, spirit, or celestial muse drawn from Eastern mythology or fantasy art.", 
     "A masterpiece of dreamy photography. The girl holds a glowing glass jar in her hands, which emits a soft yellow light, illuminating her face and the surrounding environment. She wears a white lace dress with blue and pink decorations and a light blue bow tied around her waist. The girl wears a white headdress dotted with blue and pink flowers and carries twinkling blue wings on her back. Behind the girl, you can see a vast sea of ​​flowers, which sparkle with pink and gold light and are scattered on the green grass. The sky is full of sparkling stars, from the upper left corner to the lower right corner, as if the Milky Way is scattered in the night sky. The overall light is soft and full of magical colors, making the whole picture look like a fairy tale world",
     "Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, high quality, sharp focus.",
     "A beautiful girl reading book, high quality."
   ]
 
-  // 在客户端初始化时恢复保存的状态
+  // 在客户端初始化时恢复所有保存的状态
   useEffect(() => {
-    if (!isInitialized) {
-      const savedPreviewUrl = localStorage.getItem('savedPreviewUrl')
-      const savedPrompt = localStorage.getItem('savedPrompt')
-      const savedImageBase64 = localStorage.getItem('savedImageBase64')
+    // 确保只在客户端执行
+    const savedGeneratedImagePath = localStorage.getItem('savedGeneratedImagePath')
+    const savedPreviewUrl = localStorage.getItem('savedPreviewUrl')
+    const savedPrompt = localStorage.getItem('savedPrompt')
+    const savedImageBase64 = localStorage.getItem('savedImageBase64')
 
-      if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
-      if (savedPrompt) setPrompt(savedPrompt)
-      
-      if (savedImageBase64) {
-        fetch(savedImageBase64)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], 'restored-image', { type: blob.type })
-            setImageFile(file)
-          })
-          .catch(console.error)
-      }
-
-      setIsInitialized(true)
+    if (savedGeneratedImagePath) setGeneratedImagePath(savedGeneratedImagePath)
+    if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
+    if (savedPrompt) setPrompt(savedPrompt)
+    
+    if (savedImageBase64) {
+      fetch(savedImageBase64)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], 'restored-image', { type: blob.type })
+          setImageFile(file)
+        })
+        .catch(console.error)
     }
-  }, [isInitialized])
 
-  // 在组件挂载时检查是否有保存的base64图片
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedPreviewUrl = localStorage.getItem('savedPreviewUrl')
-      const savedPrompt = localStorage.getItem('savedPrompt')
-      const savedImageBase64 = localStorage.getItem('savedImageBase64')
-
-      if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
-      if (savedPrompt) setPrompt(savedPrompt)
-      if (savedImageBase64) {
-        // 将base64转换回File对象
-        fetch(savedImageBase64)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], 'restored-image', { type: blob.type })
-            setImageFile(file)
-          })
-          .catch(console.error)
-      }
-    }
-  }, [])
+    setIsInitialized(true)
+  }, []) // 仅在组件挂载时执行一次
 
   // 保存状态到localStorage
   const saveStateToStorage = () => {
@@ -92,6 +75,9 @@ export default function Home() {
     if (prompt) {
       localStorage.setItem('savedPrompt', prompt)
     }
+    if (generatedImagePath) {
+      localStorage.setItem('savedGeneratedImagePath', generatedImagePath)
+    }
   }
 
   // 在状态改变时保存
@@ -106,6 +92,7 @@ export default function Home() {
     localStorage.removeItem('savedImageBase64')
     localStorage.removeItem('savedPreviewUrl')
     localStorage.removeItem('savedPrompt')
+    localStorage.removeItem('savedGeneratedImagePath')
   }
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -191,6 +178,8 @@ export default function Home() {
         
         if (data.success) {
           setGeneratedImagePath(data.img_id);
+          // 保存生成的图片路径到 localStorage
+          localStorage.setItem('savedGeneratedImagePath', data.img_id);
         } else if (!data.isAuthenticated) {
           setIsLoginModalOpen(true);
         } else {
@@ -258,13 +247,15 @@ export default function Home() {
         {/* 欢迎消息 */}
         <div className="container mt-3">
           <div className="welcome-message">
-            <p className="text-center p-4 rounded-lg animate__animated animate__fadeIn">
-              <span className="welcome-title">Welcome to Image Factory!</span>
-              <span className="welcome-text">
-                Upload your image and generate your own masterpiece with custom prompts.<br />
+            <div className="text-center p-4 rounded-lg animate__animated animate__fadeIn">
+              <AuroraText>
+                <span className="welcome-title">Welcome to Image Factory!</span>
+              </AuroraText>
+              <TextRevealSimple className="welcome-text mt-4">
+                Upload your image and generate your own masterpiece with custom prompts. 
                 Explore endless possibilities until you find your perfect creation.
-              </span>
-            </p>
+              </TextRevealSimple>
+            </div>
           </div>
         </div>
         
@@ -292,7 +283,16 @@ export default function Home() {
                   <div className={`image-preview-container ${previewUrl && imageFile ? '' : 'd-none'}`} id="imagePreviewContainer">
                     {previewUrl && (
                       <div className="preview-wrapper position-relative">
-                        <img src={previewUrl} className="preview-image" alt="Preview" />
+                        <img 
+                          src={previewUrl} 
+                          className="preview-image" 
+                          alt="Preview" 
+                          onClick={() => {
+                            setModalImage(previewUrl)
+                            setShowImageModal(true)
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        />
                         <button
                           className="delete-image-btn"
                           onClick={() => {
@@ -301,6 +301,7 @@ export default function Home() {
                             localStorage.removeItem('savedImageBase64')
                             localStorage.removeItem('savedPreviewUrl')
                           }}
+                          style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}
                         >
                           <i className="fas fa-times"></i>
                         </button>
@@ -344,40 +345,6 @@ export default function Home() {
           </div>
         </div>
 
-       {/* Generated image preview */}
-        <div className="row mb-4">
-          <div className="col-md-12">
-                  <div className="card mb-4">
-                      <div className="card-body">
-                          <h5 className="card-title">Generated image preview</h5>
-                          <div className="generated-preview-area mt-3" id="generatedPreview">
-                            {generatedImagePath ? (
-                              <div className="text-center">
-                                <img 
-                                  src={`${API_BASE_URL}/gen_img/output/${generatedImagePath}`}
-                                  alt="Generated image" 
-                                  className="img-fluid mb-3"
-                                  style={{ maxWidth: '100%', maxHeight: '500px' }}
-                                />
-                                <div>
-                                  <button 
-                                    className="btn btn-primary"
-                                    onClick={handleDownload}
-                                  >
-                                    <i className="fas fa-download me-2"></i>
-                                    Download Image
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <p className="text-muted">Your generated image will appear here</p>
-                            )}
-                          </div>
-                      </div>
-                  </div>
-              </div>
-        </div>
-
         {/* Prompt 模板区域 */}
         <div id="promptTemplates" className="row mb-4">
           <div className="col-12">
@@ -400,6 +367,46 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+       {/* Generated image preview */}
+        <div className="row mb-4">
+          <div className="col-md-12">
+                  <div className="card mb-4">
+                      <div className="card-body">
+                          <h5 className="card-title">Generated image preview</h5>
+                          <div className="generated-preview-area mt-3" id="generatedPreview">
+                            {generatedImagePath ? (
+                              <div className="text-center">
+                                <img 
+                                  src={`${API_BASE_URL}/gen_img/output/${generatedImagePath}`}
+                                  alt="Generated image" 
+                                  className="img-fluid mb-3"
+                                  style={{ maxWidth: '100%', maxHeight: '500px', cursor: 'pointer' }}
+                                  onClick={() => {
+                                    setModalImage(`${API_BASE_URL}/gen_img/output/${generatedImagePath}`)
+                                    setShowImageModal(true)
+                                  }}
+                                />
+                                <div>
+                                  <button 
+                                    className="btn btn-primary"
+                                    onClick={handleDownload}
+                                  >
+                                    <i className="fas fa-download me-2"></i>
+                                    Download Image
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-muted">Your generated image will appear here</p>
+                            )}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+        </div>
+
+        
 
         {/* User Cases 展示区域 */}
         <div id="userCases" className="row mb-4">
@@ -431,6 +438,35 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* 图片查看模态框 */}
+      <div 
+        className={`modal fade ${showImageModal ? 'show' : ''}`} 
+        style={{ display: showImageModal ? 'block' : 'none' }}
+        onClick={() => setShowImageModal(false)}
+      >
+        <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-content">
+            <div className="modal-body p-0">
+              <button 
+                type="button" 
+                className="delete-image-btn"
+                style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}
+                onClick={() => setShowImageModal(false)}
+              ><i className="fas fa-times"></i></button>
+              <img 
+                src={modalImage} 
+                className="img-fluid" 
+                alt="Full size preview"
+                style={{ width: '100%', height: 'auto' }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      {showImageModal && (
+        <div className="modal-backdrop fade show"></div>
+      )}
 
       {/* Toast 消息 */}
       <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>

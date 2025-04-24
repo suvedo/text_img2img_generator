@@ -97,36 +97,69 @@ body {
 .upload-container {
     width: 100%;
     padding: 2rem;
+    transition: all 0.3s ease;
 }
 
 .upload-label {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1.25rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    padding: 2rem;
+    width: 100%;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(100, 223, 223, 0.2);
+}
+
+.upload-label:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+    background: rgba(100, 223, 223, 0.05);
 }
 
 .upload-label i {
     font-size: 3rem;
     color: var(--primary-color);
-    margin-bottom: 1rem;
     transition: all 0.3s ease;
-}
-
-.upload-label span {
-    font-size: 1rem;
-    color: var(--secondary-color);
-    font-weight: 500;
-}
-
-.upload-label:hover {
-    transform: translateY(-5px);
+    filter: drop-shadow(0 2px 4px rgba(100, 223, 223, 0.2));
 }
 
 .upload-label:hover i {
-    transform: scale(1.1);
+    transform: scale(1.1) translateY(-5px);
     color: var(--accent-color);
+    filter: drop-shadow(0 4px 8px rgba(255, 154, 139, 0.3));
+}
+
+.upload-label > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* 添加动画效果 */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.upload-label i {
+    animation: float 3s ease-in-out infinite;
+}
+
+.upload-label .text-muted-foreground {
+    color: var(--secondary-color);
+    opacity: 0.7;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 #preview {
@@ -462,7 +495,7 @@ h1 {
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
     padding: 0.5rem;
     margin: 2rem 0;
-    transih1tion: all 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .welcome-message:hover {
@@ -472,28 +505,31 @@ h1 {
 
 .welcome-title {
     display: block;
-    font-size: 1.8rem;
+    font-size: 2.5rem;
     font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
     background: linear-gradient(120deg, var(--primary-color), var(--accent-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem;
-    letter-spacing: 1px;
+    background-clip: text;
 }
 
 .welcome-text {
     display: block;
     color: var(--secondary-color);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     line-height: 1.6;
     opacity: 0.9;
     font-weight: 500;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 /* 添加响应式调整 */
 @media (max-width: 768px) {
     .welcome-title {
-        font-size: 1.5rem;
+        font-size: 2rem;
     }
     
     .welcome-text {
