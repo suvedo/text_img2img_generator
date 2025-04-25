@@ -3,7 +3,8 @@ from datetime import datetime
 from flask import Flask, render_template, request, \
     jsonify, send_file, session, Blueprint, send_from_directory
 from flask_cors import CORS
-#from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
 import json
 import traceback
 import random
@@ -81,12 +82,13 @@ def process():
         # 获取图片文件名
         image_filename = request.form.get('image')
         if not image_filename:
-            return jsonify(success=False, isAuthenticated=auth, message="未提供图片文件名")
+            return jsonify(success=False, isAuthenticated=auth, message="no image file provided")
         
+        logger.info(f"request_id:{request_id}, image_filename:{image_filename}")
         # 构建图片文件的完整路径
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
         if not os.path.exists(os.path.join(app.config['BASE_DIR'], image_path)):
-            return jsonify(success=False, isAuthenticated=auth, message="图片文件不存在")
+            return jsonify(success=False, isAuthenticated=auth, message="upload image failed, please upload again")
 
         # 打开图片文件
         with open(os.path.join(app.config['BASE_DIR'], image_path), 'rb') as f:

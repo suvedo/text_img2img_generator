@@ -10,21 +10,21 @@ import { TextRevealSimple } from '@/components/magicui/text-reveal-simple'
 
 export default function Home() {
   const { data: session, status } = useSession()
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState('')
+  // 用户上传的图片名称
+  const [uploadImageFileName, setUploadImageFileName] = useState('')
+  // 用户输入的prompt
   const [prompt, setPrompt] = useState('')
+  // 是否初始化
   const [isInitialized, setIsInitialized] = useState(false)
+  // 登录模态框是否打开
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  // 是否正在生成图片
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedImagePath, setGeneratedImagePath] = useState<string | null>(null)
+  // 生成的图片的名称
+  const [generatedImagePath, setGeneratedImagePath] = useState('')
+  // 图片查看模态框，用户上传的图片和生成的图片都用这个模态框展示
   const [showImageModal, setShowImageModal] = useState(false)
   const [modalImage, setModalImage] = useState('')
-
-  // Debug session state
-  useEffect(() => {
-    console.log('Session status:', status)
-    console.log('Session data:', session)
-  }, [session, status])
 
   // 模板数据
   const promptTemplates = [
@@ -39,71 +39,53 @@ export default function Home() {
   useEffect(() => {
     // 确保只在客户端执行
     const savedGeneratedImagePath = localStorage.getItem('savedGeneratedImagePath')
-    const savedPreviewUrl = localStorage.getItem('savedPreviewUrl')
+    const savedUploadImageFileName = localStorage.getItem('savedUploadImageFileName')
     const savedPrompt = localStorage.getItem('savedPrompt')
-    const savedImageBase64 = localStorage.getItem('savedImageBase64')
 
     if (savedGeneratedImagePath) setGeneratedImagePath(savedGeneratedImagePath)
-    if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
+    if (savedUploadImageFileName) setUploadImageFileName(savedUploadImageFileName)
     if (savedPrompt) setPrompt(savedPrompt)
-    if (savedImageBase64) {
-        fetch(savedImageBase64)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], 'restored-image', { type: blob.type })
-            setImageFile(file)
-          })
-          .catch(console.error)
-    }
 
-    setIsInitialized(true)
+    //setIsInitialized(true)
   }, []) // 仅在组件挂载时执行一次
 
   // 保存状态到localStorage
   const saveStateToStorage = () => {
-    if (imageFile) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        localStorage.setItem('savedImageBase64', reader.result as string)
-      }
-      reader.readAsDataURL(imageFile)
-    }
-    if (previewUrl) {
-      localStorage.setItem('savedPreviewUrl', previewUrl)
-    }
-    if (prompt) {
-      localStorage.setItem('savedPrompt', prompt)
-    }
-    if (generatedImagePath) {
-      localStorage.setItem('savedGeneratedImagePath', generatedImagePath)
-    }
+    localStorage.setItem('savedUploadImageFileName', uploadImageFileName)
+    localStorage.setItem('savedPrompt', prompt)
+    localStorage.setItem('savedGeneratedImagePath', generatedImagePath)
+
+    // if (uploadImageFileName) {
+    //   localStorage.setItem('savedUploadImageFileName', uploadImageFileName)
+    // }
+    // if (prompt) {
+    //   localStorage.setItem('savedPrompt', prompt)
+    // }
+    // if (generatedImagePath) {
+    //   localStorage.setItem('savedGeneratedImagePath', generatedImagePath)
+    // }
   }
 
   // 在状态改变时保存
   useEffect(() => {
-    if (isInitialized) {
-      saveStateToStorage()
-    }
-  }, [imageFile, previewUrl, prompt, isInitialized])
+    saveStateToStorage()
+    // if (isInitialized) {
+      
+    //   saveStateToStorage()
+    // }
+  }, [uploadImageFileName, prompt, generatedImagePath])
 
   // 清除保存的状态
-  const clearSavedState = () => {
-    localStorage.removeItem('savedImageBase64')
-    localStorage.removeItem('savedPreviewUrl')
-    localStorage.removeItem('savedPrompt')
-    localStorage.removeItem('savedGeneratedImagePath')
-  }
+  // const clearSavedState = () => {
+  //   localStorage.removeItem('savedUploadImageFileName')
+  //   localStorage.removeItem('savedPrompt')
+  //   localStorage.removeItem('savedGeneratedImagePath')
+  // }
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
 
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        localStorage.setItem('savedImageBase64', reader.result as string)
-      }
-      reader.readAsDataURL(file)
-      
       // 创建FormData对象
       const formData = new FormData()
       formData.append('image', file)
@@ -118,13 +100,8 @@ export default function Home() {
         const data = await response.json()
         
         if (data.success) {
-          // 设置本地预览
-          setImageFile(file)
-          // 使用服务器返回的URL设置预览
-          const serverUrl = `${API_BASE_URL}/gen_img/upload/${data.file_path}`
-          setPreviewUrl(serverUrl)
-
-          localStorage.setItem('savedPreviewUrl', serverUrl)
+          setUploadImageFileName(data.file_path)
+          // localStorage.setItem('savedUploadImageFileName', data.file_path)
         } else {
           alert('Failed to upload image: ' + data.message)
         }
@@ -137,11 +114,11 @@ export default function Home() {
 
   const updatePrompt = (newPrompt: string) => {
     setPrompt(newPrompt)
-    localStorage.setItem('savedPrompt', newPrompt)
+    // localStorage.setItem('savedPrompt', newPrompt)
   }
 
   const handleSubmit = async () => {
-    if (!imageFile || !prompt) {
+    if (!uploadImageFileName || !prompt) {
       alert('Please upload an image and enter a prompt')
       return
     }
@@ -158,7 +135,7 @@ export default function Home() {
     }
 
     const formData = new FormData()
-    formData.append('image', imageFile.name)
+    formData.append('image', uploadImageFileName)
     formData.append('text', prompt)
     // 添加用户信息
     formData.append('user', JSON.stringify({
@@ -200,7 +177,7 @@ export default function Home() {
         if (data.success) {
           setGeneratedImagePath(data.img_id);
           // 保存生成的图片路径到 localStorage
-          localStorage.setItem('savedGeneratedImagePath', data.img_id);
+          // localStorage.setItem('savedGeneratedImagePath', data.img_id);
         } else if (!data.isAuthenticated) {
           setIsLoginModalOpen(true);
         } else {
@@ -224,8 +201,8 @@ export default function Home() {
 
   const handleDownload = () => {
     if (generatedImagePath) {
-      const filename = generatedImagePath.split('/').pop()
-      window.open(`${API_BASE_URL}/gen_img/download/${filename}`, '_blank')
+      // const filename = generatedImagePath.split('/').pop()
+      window.open(`${API_BASE_URL}/gen_img/download/${generatedImagePath}`, '_blank')
     }
   }
 
@@ -295,21 +272,21 @@ export default function Home() {
                     onChange={handleImageUpload}
                     className="form-control d-none"
                   />
-                  <div className={`upload-container text-center ${previewUrl? 'd-none' : ''}`} id="uploadContainer">
+                  <div className={`upload-container text-center ${uploadImageFileName? 'd-none' : ''}`} id="uploadContainer">
                     <label htmlFor="imageUpload" className="upload-label">
                       <i className="fas fa-cloud-upload-alt"></i>
                       <span>click to upload</span>
                     </label>
                   </div>
-                  <div className={`image-preview-container ${previewUrl? '' : 'd-none'}`} id="imagePreviewContainer">
-                    {previewUrl && (
+                  <div className={`image-preview-container ${uploadImageFileName? '' : 'd-none'}`} id="imagePreviewContainer">
+                    {uploadImageFileName && (
                       <div className="preview-wrapper position-relative">
                         <img 
-                          src={previewUrl} 
+                          src={`${API_BASE_URL}/gen_img/upload/${uploadImageFileName}`} 
                           className="preview-image" 
                           alt="Preview" 
                           onClick={() => {
-                            setModalImage(previewUrl)
+                            setModalImage(`${API_BASE_URL}/gen_img/upload/${uploadImageFileName}`)
                             setShowImageModal(true)
                           }}
                           style={{ cursor: 'pointer' }}
@@ -317,10 +294,8 @@ export default function Home() {
                         <button
                           className="delete-image-btn"
                           onClick={() => {
-                            setImageFile(null)
-                            setPreviewUrl('')
-                            localStorage.removeItem('savedImageBase64')
-                            localStorage.removeItem('savedPreviewUrl')
+                            setUploadImageFileName('')
+                            // localStorage.removeItem('savedUploadImageFileName')
                           }}
                           style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}
                         >
@@ -411,8 +386,8 @@ export default function Home() {
                                 <button
                                   className="delete-image-btn"
                                   onClick={() => {
-                                    setGeneratedImagePath(null)
-                                    localStorage.removeItem('savedGeneratedImagePath')
+                                    setGeneratedImagePath('')
+                                    // localStorage.removeItem('savedGeneratedImagePath')
                                   }}
                                   style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}
                                 >
