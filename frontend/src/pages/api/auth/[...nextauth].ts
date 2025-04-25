@@ -113,7 +113,7 @@ export const authOptions: AuthOptions = {
   },
 
   pages: {
-    signIn: '/auth/signin', // 自定义登录页面路径
+    //signIn: '/auth/signin', // 自定义登录页面路径
     error: '/auth/error', // 错误页面
   },
   // 配置 JWT

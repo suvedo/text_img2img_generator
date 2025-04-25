@@ -46,15 +46,14 @@ export default function Home() {
     if (savedGeneratedImagePath) setGeneratedImagePath(savedGeneratedImagePath)
     if (savedPreviewUrl) setPreviewUrl(savedPreviewUrl)
     if (savedPrompt) setPrompt(savedPrompt)
-    
     if (savedImageBase64) {
-      fetch(savedImageBase64)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], 'restored-image', { type: blob.type })
-          setImageFile(file)
-        })
-        .catch(console.error)
+        fetch(savedImageBase64)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], 'restored-image', { type: blob.type })
+            setImageFile(file)
+          })
+          .catch(console.error)
     }
 
     setIsInitialized(true)
@@ -95,22 +94,44 @@ export default function Home() {
     localStorage.removeItem('savedGeneratedImagePath')
   }
 
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      setImageFile(file)
-      setPreviewUrl(URL.createObjectURL(file))
 
-      if (file) {
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          localStorage.setItem('savedImageBase64', reader.result as string)
-        }
-        reader.readAsDataURL(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        localStorage.setItem('savedImageBase64', reader.result as string)
       }
-    
-      localStorage.setItem('savedPreviewUrl', previewUrl)
+      reader.readAsDataURL(file)
       
+      // 创建FormData对象
+      const formData = new FormData()
+      formData.append('image', file)
+
+      try {
+        // 上传图片到服务器
+        const response = await fetch(`${API_BASE_URL}/gen_img/upload`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        const data = await response.json()
+        
+        if (data.success) {
+          // 设置本地预览
+          setImageFile(file)
+          // 使用服务器返回的URL设置预览
+          const serverUrl = `${API_BASE_URL}/gen_img/upload/${data.file_path}`
+          setPreviewUrl(serverUrl)
+
+          localStorage.setItem('savedPreviewUrl', serverUrl)
+        } else {
+          alert('Failed to upload image: ' + data.message)
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        alert('Error uploading image: ' + error)
+      }
     }
   }
 
@@ -137,7 +158,7 @@ export default function Home() {
     }
 
     const formData = new FormData()
-    formData.append('image', imageFile)
+    formData.append('image', imageFile.name)
     formData.append('text', prompt)
     // 添加用户信息
     formData.append('user', JSON.stringify({
@@ -274,13 +295,13 @@ export default function Home() {
                     onChange={handleImageUpload}
                     className="form-control d-none"
                   />
-                  <div className={`upload-container text-center ${previewUrl && imageFile ? 'd-none' : ''}`} id="uploadContainer">
+                  <div className={`upload-container text-center ${previewUrl? 'd-none' : ''}`} id="uploadContainer">
                     <label htmlFor="imageUpload" className="upload-label">
                       <i className="fas fa-cloud-upload-alt"></i>
                       <span>click to upload</span>
                     </label>
                   </div>
-                  <div className={`image-preview-container ${previewUrl && imageFile ? '' : 'd-none'}`} id="imagePreviewContainer">
+                  <div className={`image-preview-container ${previewUrl? '' : 'd-none'}`} id="imagePreviewContainer">
                     {previewUrl && (
                       <div className="preview-wrapper position-relative">
                         <img 
@@ -387,6 +408,16 @@ export default function Home() {
                                     setShowImageModal(true)
                                   }}
                                 />
+                                <button
+                                  className="delete-image-btn"
+                                  onClick={() => {
+                                    setGeneratedImagePath(null)
+                                    localStorage.removeItem('savedGeneratedImagePath')
+                                  }}
+                                  style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}
+                                >
+                                  <i className="fas fa-times"></i>
+                                </button>
                                 <div>
                                   <button 
                                     className="btn btn-primary"
