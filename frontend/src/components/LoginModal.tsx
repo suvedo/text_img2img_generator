@@ -2,6 +2,8 @@ import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { API_BASE_URL } from '../config'
+
 interface LoginModalProps {
   isOpen: boolean
   onClose: () => void
@@ -19,22 +21,51 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       alert('Passwords do not match')
       return
     }
-    
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false
-      })
-      
-      if (result?.error) {
-        alert(result.error)
-      } else {
-        onClose()
+
+    if (isSignUp) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/gen_img/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        })
+  
+        const data = await res.json()
+  
+        if (data.ok) {
+          alert('signup ok, signin please')
+          setIsSignUp(false)
+          setPassword('')
+        } else {
+          alert(data.msg)
+        }
+      } catch (error) {
+        console.error('signup error:', error)
+        alert('An error occurred during signup')
       }
-    } catch (error) {
-      console.error('Login error:', error)
-      alert('An error occurred during login')
+      
+    } else {
+      try {
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false
+        })
+        
+        if (result?.error) {
+          alert(result.error)
+        } else {
+          onClose()
+        }
+      } catch (error) {
+        console.error('Login error:', error)
+        alert('An error occurred during login')
+      }
     }
   }
 
@@ -91,6 +122,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <label htmlFor="loginEmail" className="form-label">Email address</label>
                   <input
                     type="email"
+                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Please enter a valid email address')}
+                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                     className="form-control"
                     id="loginEmail"
                     value={email}

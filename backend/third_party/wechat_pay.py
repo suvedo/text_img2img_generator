@@ -14,7 +14,7 @@ from utils.log_util import logger
 from utils import random_util
 
 
-def get_code_url(request_id, user_id, order_type, out_trade_no, conf):
+def get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, conf):
     """
     获取微信支付的二维码链接
     :param request_id: 请求ID
@@ -22,8 +22,8 @@ def get_code_url(request_id, user_id, order_type, out_trade_no, conf):
     :return: 二维码链接
     """
     try:
-        amount_total = int(conf["WECHAT_PAY_AMOUNT"].split("-")[0])
-        amount_currency = conf["WECHAT_PAY_AMOUNT"].split("-")[1]
+        amount_total = pay_amount #int(conf["WECHAT_PAY_AMOUNT"].split("-")[0])
+        amount_currency = 'CNY' #conf["WECHAT_PAY_AMOUNT"].split("-")[1]
         attach_str = json.dumps({
                             "user_id": user_id,
                             "order_type": order_type

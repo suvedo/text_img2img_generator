@@ -1,12 +1,15 @@
 import { useState, ChangeEvent, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Head from 'next/head'
-import Navbar from '../components/Navbar'
-import LoginModal from '../components/LoginModal'
-import { assert } from 'console'
-import { API_BASE_URL } from '../config'
 import { AuroraText } from '@/components/magicui/aurora-text'
 import { TextRevealSimple } from '@/components/magicui/text-reveal-simple'
+import { assert, Console } from 'console'
+
+import Navbar from '../components/Navbar'
+import LoginModal from '../components/LoginModal'
+import WechatPayModal from '../components/WechatPay'
+import { API_BASE_URL } from '../config'
+
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -18,6 +21,10 @@ export default function Home() {
   const [isInitialized, setIsInitialized] = useState(false)
   // 登录模态框是否打开
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  // 微信支付模态框是否打开
+  const [isWechatPayModalOpen, setIsWechatPayModalOpen] = useState(false)
+  // 支付金额
+  const [payAmount, setPayAmount] = useState('0')
   // 是否正在生成图片
   const [isGenerating, setIsGenerating] = useState(false)
   // 生成的图片的名称
@@ -34,6 +41,12 @@ export default function Home() {
     "Full body shot of young Asian face woman in sun hat and white dress standing on sunny beach with sea and mountains in background, high quality, sharp focus.",
     "A beautiful girl reading book, high quality."
   ]
+
+  useEffect(() => {
+    console.log("debug session:", session)
+  }, 
+  [session]
+  )
 
   // 在客户端初始化时恢复所有保存的状态
   useEffect(() => {
@@ -115,6 +128,23 @@ export default function Home() {
   const updatePrompt = (newPrompt: string) => {
     setPrompt(newPrompt)
     // localStorage.setItem('savedPrompt', newPrompt)
+  }
+
+  const handlePurchase = async (amount: string) => {
+    // 等待 session 加载完成
+    if (status === 'loading') {
+      return
+    }
+
+    // 检查登录状态
+    if (status !== 'authenticated' || !session?.user) {
+      setIsLoginModalOpen(true)
+      return
+    }
+
+    setPayAmount(amount)
+    setIsWechatPayModalOpen(true)
+
   }
 
   const handleSubmit = async () => {
@@ -216,30 +246,15 @@ export default function Home() {
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)} 
       />
-      {/* 微信支付模态框 */}
-      {/* <div id="qrCodeModal" className="modal payment-modal" tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title text-center w-100">
-                <i className="fab fa-weixin me-2" style={{ color: '#07C160' }}></i>
-                WeChat Payment
-                <div className="small text-muted mt-2">Please complete payment within 15 minutes</div>
-              </h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body text-center">
-              <div className="qr-code-container">
-                <img id="qrCodeImage" src="" alt="QR Code" className="img-fluid mb-3" />
-                <div className="timer">
-                  <i className="far fa-clock me-1"></i>
-                  <span id="paymentTimer">15:00</span> remaining
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
+      <WechatPayModal 
+        isOpen={isWechatPayModalOpen} 
+        onClose={() => {
+          setIsWechatPayModalOpen(false)
+          setPayAmount('0')
+        }}
+        payAmount={payAmount}
+      />
+      
 
       <div className="container mt-5">
         {/* 欢迎消息 */}
@@ -412,7 +427,35 @@ export default function Home() {
               </div>
         </div>
 
-        
+        {/* my creations 展示区域 */}
+        <div id="myCreations" className="row mb-4">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">My Creations</h5>
+                <div className="user-cases-container">
+                  <div className="user-case-item">
+                    <div className="row align-items-center">
+                      <div className="col-md-3">
+                        <img src="/images/case1_original.jpg" className="img-fluid rounded" alt="Original Image" />
+                        <p className="text-muted mt-2">Original Image</p>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="prompt-text">
+                          <p>The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere...</p>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <img src="/images/case1_generated.jpg" className="img-fluid rounded" alt="Generated Image" />
+                        <p className="text-muted mt-2">Generated Image</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* User Cases 展示区域 */}
         <div id="userCases" className="row mb-4">
@@ -443,7 +486,67 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Pricing 展示区域 */}
+        <div id="pricingAera" className="row mb-4">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Pricing</h5>
+                <div className="user-cases-container">
+                  <div className="user-case-item">
+                    <div className="row align-items-center">
+                      <div className="col-md-3">
+                        <div className="card h-100">
+                          <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">for trial</h5>
+                            <div className="preview-area mt-3 flex-grow-1" id="preview">
+                              <p>￥7.9 (ten times)</p>
+                              <button className="nav-link mx-2" onClick={() => handlePurchase('790')}>
+                                purchase
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="card h-100">
+                          <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">standard</h5>
+                            <div className="preview-area mt-3 flex-grow-1" id="preview">
+                            
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="card h-100">
+                          <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">premium</h5>
+                            <div className="preview-area mt-3 flex-grow-1" id="preview">
+                            
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="card h-100">
+                          <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">professional</h5>
+                            <div className="preview-area mt-3 flex-grow-1" id="preview">
+                            
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
       </div>
+    </div>
 
       {/* 图片查看模态框 */}
       <div 
@@ -474,41 +577,7 @@ export default function Home() {
         <div className="modal-backdrop fade show"></div>
       )}
 
-      {/* Toast 消息 */}
-      <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>
-        {/* Payment Success Toast */}
-        <div id="paymentSuccessToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-          <div className="toast-header bg-success text-white">
-            <strong className="me-auto">payment successful</strong>
-            <button type="button" className="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-          <div className="toast-body">
-            payment complete, page will refresh shortly...
-          </div>
-        </div>
-
-        {/* Payment Failed Toast */}
-        <div id="paymentFailedToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-          <div className="toast-header bg-success text-white">
-            <strong className="me-auto">payment failed</strong>
-            <button type="button" className="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-          <div className="toast-body">
-            payment incomplete, page will refresh shortly...
-          </div>
-        </div>
-
-        {/* Payment Timeout Toast */}
-        <div id="paymentFailedTimeoutToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-          <div className="toast-header bg-success text-white">
-            <strong className="me-auto">payment timed out</strong>
-            <button type="button" className="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-          <div className="toast-body">
-            payment incomplete, page will refresh shortly...
-          </div>
-        </div>
-      </div>
+      
     </>
   )
 }

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, \
-    jsonify, send_file, session, Blueprint, send_from_directory
+    jsonify, send_file, session, Blueprint, send_from_directory, make_response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
@@ -33,9 +33,10 @@ CORS(app, resources={
         "supports_credentials": True,
         "max_age": 600
     }
-})
+}, supports_credentials=True)
 
 app.config.from_pyfile('config.py')
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # 初始化数据库
 db.init_app(app)
@@ -181,16 +182,28 @@ def download_file_from_hf(request_id, upload_file_name, url):
         return None
                 
 
-@app.route('/get_pricing_qr')
+@app.route('/gen_img/get_pricing_qr', methods=['POST'])
 def get_pricing_qr():
     try:
         request_id = random_util.generate_random_str(16)
         logger.info(f"got get_pricing_qr request, request_id:{request_id}")
+        
         # 生成二维码内容
-        user_id = "admin_user_id"
+        # 从请求中获取用户信息
+        user_data = json.loads(request.form.get('user', '{}'))
+        # 将用户信息存入 session
+        session['user'] = user_data
+        logger.info(f"request_id:{request_id}, user:{session['user']}")
+        user_id = user_account.get_email_in_session(session)
+        if not user_id:
+            return jsonify(success=False, message="cannot get user email"), 500
         order_type = "1" # 1
         out_trade_no = random_util.generate_random_str(16)
-        qr_url = wechat_pay.get_code_url(request_id, user_id, order_type, out_trade_no, app.config) 
+
+        pay_amount = int(json.loads(request.form.get('amount', '0')))
+        if pay_amount <= 0:
+            return jsonify(success=False, message="pay amount error"), 500
+        qr_url = wechat_pay.get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, app.config) 
         # qr_content="weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"
         logger.info(f"request_id:{request_id}, get_pricing_qr, qr_url:{qr_url}")
         if not qr_url:
@@ -204,11 +217,11 @@ def get_pricing_qr():
 
         # 返回二维码图片
         # 设置响应头，包含订单参数
-        response = send_file(buffer, mimetype='image/png')
-        response.headers['X-Order-Id'] = out_trade_no
+        response = make_response(send_file(buffer, mimetype='image/png'))
         response.headers['X-User-Id'] = user_id
         response.headers['X-Order-Type'] = order_type
-        
+        response.headers['X-Order-Id'] = out_trade_no
+        response.headers['Access-Control-Expose-Headers'] = 'X-User-Id, X-Order-Type, X-Order-Id'
         return response
     except Exception as e:
         logger.error(f"request_id:{request_id}, error:{traceback.format_exc()}")
@@ -269,7 +282,7 @@ async def process_wechat_pay_callback(request_id, headers, body, conf):
         logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
 
 
-@app.route('/query_payment_status', methods=['POST'])
+@app.route('/gen_img/query_payment_status', methods=['POST'])
 def query_payment_status():
     try:
         request_id = random_util.generate_random_str(16)
@@ -303,25 +316,25 @@ def query_payment_status():
         return jsonify({'success': False, 'paid': False})
 
 
-@app.route('/api/login', methods=['POST'])
+@app.route('/gen_img/login', methods=['POST'])
 def login():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got login request, request_id:{request_id}")
     data = request.get_json()
     return user_account.login(request_id, data, session)
 
-@app.route('/api/signup', methods=['POST'])
+@app.route('/gen_img/signup', methods=['POST'])
 def signup():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got signup request, request_id:{request_id}")
     data = request.get_json()
     return user_account.signup(request_id, data, session)
 
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    request_id = random_util.generate_random_str(16)
-    logger.info(f"got logout request, request_id:{request_id}")
-    return user_account.logout(request_id, session)
+# @app.route('/api/logout', methods=['POST'])
+# def logout():
+#     request_id = random_util.generate_random_str(16)
+#     logger.info(f"got logout request, request_id:{request_id}")
+#     return user_account.logout(request_id, session)
 
 
 @app.route('/gen_img/output/<path:filename>')
