@@ -1,4 +1,6 @@
 from database.db_model import db
+from datetime import datetime
+
 from utils.log_util import logger
 
 class UserPayment(db.Model):
@@ -9,8 +11,7 @@ class UserPayment(db.Model):
     order_type = db.Column(db.String(16), nullable=False)
     out_trade_no = db.Column(db.String(120), nullable=False)
     pay_state = db.Column(db.String(64))
-    create_time = db.Column(db.DateTime, server_default=db.func.now())
-
+    created_time = db.Column(db.DateTime, default=datetime.utcnow)  # 自动记录创建时间
 
 def format_order_no(user_id, order_type, out_trade_no):
     """
