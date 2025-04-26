@@ -14,31 +14,28 @@ from utils.log_util import logger
 from utils import random_util
 
 
-def get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, conf):
+def get_native_pay_code_url(request_id, wechat_pay_dns, native_pay_path, \
+                    appid, mchid, api_serial_no, apiclient_key_path, \
+                    out_trade_no, amount_total, amount_currency, attach_str, discription, \
+                    notify_url, expire_delta_in_sec):
     """
     获取微信支付的二维码链接
     :param request_id: 请求ID
-    :param conf: 配置项
+    :param 
     :return: 二维码链接
     """
     try:
-        amount_total = pay_amount #int(conf["WECHAT_PAY_AMOUNT"].split("-")[0])
-        amount_currency = 'CNY' #conf["WECHAT_PAY_AMOUNT"].split("-")[1]
-        attach_str = json.dumps({
-                            "user_id": user_id,
-                            "order_type": order_type
-                        }, ensure_ascii=False)
-        # 生成15分钟后的过期时间
+        # 生成二维码的过期时间
         beijing_tz = timezone(timedelta(hours=8))  # 北京时区 UTC+8
-        expire_time = datetime.now(beijing_tz) + timedelta(minutes=15)
+        expire_time = datetime.now(beijing_tz) + timedelta(seconds=expire_delta_in_sec)
         time_expire = expire_time.strftime('%Y-%m-%dT%H:%M:%S+08:00')
         payload = {
-            "appid" : conf["WECHAT_PAY_APPID"],
-            "mchid" : conf["WECHAT_PAY_MCHID"],
-            "description" : conf["WECHAT_PAY_DISCRIPTION"],
+            "appid" : appid,
+            "mchid" : mchid,
+            "description" : discription,
             "out_trade_no" : out_trade_no,
             "attach" : attach_str,
-            "notify_url" : conf["WECHAT_PAY_NOTIFY_URL"],
+            "notify_url" : notify_url,
             "time_expire" : time_expire,
             "support_fapiao" : False,
             "amount" : {
@@ -52,14 +49,17 @@ def get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, conf
 
         random_str = random_util.generate_random_str(16).upper()
         timestamp = str(int(time.time()))
-        auth = 'WECHATPAY2-SHA256-RSA2048 ' + \
-            'mchid="{mchid}",nonce_str="{nonce_str}",signature="{signature}",' + \
-            'timestamp="{timestamp}",serial_no="{serial_no}"'
-        auth = auth.format(mchid=conf["WECHAT_PAY_MCHID"], \
-                           nonce_str=random_str, \
-                            signature=get_auth(request_id, conf, payload_str, timestamp, random_str), \
-                            timestamp=timestamp, \
-                            serial_no=conf["WECHAT_PAY_API_SERIAL_NO"])
+        signature = get_auth(request_id, native_pay_path, apiclient_key_path, \
+                                payload_str, timestamp, random_str)
+        auth = f'WECHATPAY2-SHA256-RSA2048 ' + \
+            f'mchid="{mchid}",nonce_str="{random_str}",signature="{signature}",' + \
+            f'timestamp="{timestamp}",serial_no="{api_serial_no}"'
+        
+        # auth = auth.format(mchid=mchid, \
+        #                    nonce_str=random_str, \
+        #                     signature=signature, \
+        #                     timestamp=timestamp, \
+        #                     serial_no=api_serial_no)
         if not auth:
             logger.error(f"request_id:{request_id}, failed to get wechat pay auth")
             return None
@@ -73,7 +73,7 @@ def get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, conf
         }
         
         # 发送POST请求
-        response = requests.post(conf["WECHAT_PAY_NATIVE_DNS"]+conf["WECHAT_PAY_NATIVE_PATH"], 
+        response = requests.post(wechat_pay_dns + native_pay_path, 
                                  headers=headers, data=payload_str)
         
         # 添加详细的错误信息日志
@@ -97,7 +97,90 @@ def get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, conf
     return None
 
 
-def get_auth(request_id, conf, payload_str, timestamp, random_str):
+# def get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, conf):
+#     """
+#     获取微信支付的二维码链接
+#     :param request_id: 请求ID
+#     :param conf: 配置项
+#     :return: 二维码链接
+#     """
+#     try:
+#         amount_total = pay_amount #int(conf["WECHAT_PAY_AMOUNT"].split("-")[0])
+#         amount_currency = 'CNY' #conf["WECHAT_PAY_AMOUNT"].split("-")[1]
+#         attach_str = json.dumps({
+#                             "user_id": user_id,
+#                             "order_type": order_type
+#                         }, ensure_ascii=False)
+#         # 生成15分钟后的过期时间
+#         beijing_tz = timezone(timedelta(hours=8))  # 北京时区 UTC+8
+#         expire_time = datetime.now(beijing_tz) + timedelta(minutes=15)
+#         time_expire = expire_time.strftime('%Y-%m-%dT%H:%M:%S+08:00')
+#         payload = {
+#             "appid" : conf["WECHAT_PAY_APPID"],
+#             "mchid" : conf["WECHAT_PAY_MCHID"],
+#             "description" : conf["WECHAT_PAY_DISCRIPTION"],
+#             "out_trade_no" : out_trade_no,
+#             "attach" : attach_str,
+#             "notify_url" : conf["WECHAT_PAY_NOTIFY_URL"],
+#             "time_expire" : time_expire,
+#             "support_fapiao" : False,
+#             "amount" : {
+#                 "total" : amount_total,
+#                 "currency" : amount_currency
+#             }
+#         }
+#         payload_str = json.dumps(payload, ensure_ascii=False)
+#         payload_str = payload_str.replace(" ", "").replace("\n", "")
+#         logger.info(f"request_id:{request_id}, wechat pay payload str: {payload_str}")
+
+#         random_str = random_util.generate_random_str(16).upper()
+#         timestamp = str(int(time.time()))
+#         auth = 'WECHATPAY2-SHA256-RSA2048 ' + \
+#             'mchid="{mchid}",nonce_str="{nonce_str}",signature="{signature}",' + \
+#             'timestamp="{timestamp}",serial_no="{serial_no}"'
+#         auth = auth.format(mchid=conf["WECHAT_PAY_MCHID"], \
+#                            nonce_str=random_str, \
+#                             signature=get_auth(request_id, conf, payload_str, timestamp, random_str), \
+#                             timestamp=timestamp, \
+#                             serial_no=conf["WECHAT_PAY_API_SERIAL_NO"])
+#         if not auth:
+#             logger.error(f"request_id:{request_id}, failed to get wechat pay auth")
+#             return None
+        
+#         logger.info(f"request_id:{request_id}, auth:{auth}")
+        
+#         headers = {
+#             "Authorization": auth,
+#             "Accept" : "application/json",
+#             "Content-Type" : "application/json"
+#         }
+        
+#         # 发送POST请求
+#         response = requests.post(conf["WECHAT_PAY_NATIVE_DNS"]+conf["WECHAT_PAY_NATIVE_PATH"], 
+#                                  headers=headers, data=payload_str)
+        
+#         # 添加详细的错误信息日志
+#         if response.status_code != 200:
+#             logger.error(f"request_id:{request_id}, HTTP状态码: {response.status_code}")
+#             logger.error(f"request_id:{request_id}, 响应内容: {response.text}")
+
+#         response.raise_for_status()  # 检查HTTP状态码
+        
+#         rsp_json = response.json()
+#         code_url = rsp_json["code_url"]
+#         logger.info(f"request_id:{request_id}, wechat pay code url: {code_url}")
+
+#         return code_url
+        
+#     except requests.exceptions.RequestException as e:
+#         logger.error(f"request_id:{request_id}, 下载失败：{traceback.format_exc()}")
+#     except IOError as e:
+#         logger.error(f"request_id:{request_id}, 文件写入错误：{traceback.format_exc()}")
+
+#     return None
+
+
+def get_auth(request_id, native_pay_path, apiclient_key_path, payload_str, timestamp, random_str):
     """
     获取微信支付的认证信息
     :param request_id: 请求ID
@@ -106,13 +189,12 @@ def get_auth(request_id, conf, payload_str, timestamp, random_str):
     """
     
     method = "POST"
-    abs_url = conf["WECHAT_PAY_NATIVE_PATH"]
 
-    pem_str = '\n'.join([method, abs_url, timestamp, random_str, payload_str])
+    pem_str = '\n'.join([method, native_pay_path, timestamp, random_str, payload_str])
     pem_str += "\n"
     logger.info(f"request_id:{request_id}, wechat pay pem_str: {pem_str}")
 
-    return sign_with_rsa(request_id, pem_str, conf["WECHAT_PAY_PEM_PATH"])
+    return sign_with_rsa(request_id, pem_str, apiclient_key_path)
 
 
 def sign_with_rsa(request_id, pem_str, private_key_path):
@@ -145,7 +227,8 @@ def sign_with_rsa(request_id, pem_str, private_key_path):
         return None
 
 
-def verify_pay_callback(request_id, headers, body, conf):
+def verify_pay_callback(request_id, headers, body, \
+                        api_serial_no, wechat_public_key_path):
     try:
         logger.info(f"request_id:{request_id}, verify_pay_callback, headers: {headers}")
         serial = headers.get('Wechatpay-Serial')
@@ -153,8 +236,8 @@ def verify_pay_callback(request_id, headers, body, conf):
         timestamp = headers.get('Wechatpay-Timestamp')
         nonce = headers.get('Wechatpay-Nonce')
 
-        # check if request serial matches the one in config
-        if serial != conf["WECHAT_PAY_SERIAL_NO"]:
+        # check if request serial matches
+        if serial != api_serial_no:
             logger.error(f"request_id:{request_id}, serial:{serial}, wechat pay platform serial number not match")
             return False
         
@@ -176,7 +259,7 @@ def verify_pay_callback(request_id, headers, body, conf):
 
         try:
             # 读取微信支付平台公钥
-            with open(conf["WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH"], "rb") as f:
+            with open(wechat_public_key_path, "rb") as f:
                 public_key = load_pem_public_key(f.read())
                 
             # Base64解码签名
@@ -204,19 +287,92 @@ def verify_pay_callback(request_id, headers, body, conf):
         return False
 
 
-def decrypt_pay_callback_ciphertext(request_id, headers, body, conf):
+def decrypt_pay_callback_ciphertext(request_id, headers, body, api_password):
     # nonce = headers.get('Wechatpay-Nonce')
     nonce = body["resource"]["nonce"]
     ciphertext = body["resource"]["ciphertext"]
     associated_data = body["resource"]["associated_data"]
 
-    key = conf["WECHAT_PAY_API_PW"]
-    key_bytes = str.encode(key)
+    key_bytes = str.encode(api_password)
     nonce_bytes = str.encode(nonce)
     ad_bytes = str.encode(associated_data)
     data = base64.b64decode(ciphertext)
     aesgcm = AESGCM(key_bytes)
     return aesgcm.decrypt(nonce_bytes, data, ad_bytes).decode('utf-8')
+
+
+# def verify_pay_callback(request_id, headers, body, conf):
+#     try:
+#         logger.info(f"request_id:{request_id}, verify_pay_callback, headers: {headers}")
+#         serial = headers.get('Wechatpay-Serial')
+#         signature = headers.get('Wechatpay-Signature')
+#         timestamp = headers.get('Wechatpay-Timestamp')
+#         nonce = headers.get('Wechatpay-Nonce')
+
+#         # check if request serial matches the one in config
+#         if serial != conf["WECHAT_PAY_SERIAL_NO"]:
+#             logger.error(f"request_id:{request_id}, serial:{serial}, wechat pay platform serial number not match")
+#             return False
+        
+#         # check timestamp
+#         if abs(int(time.time()) - int(timestamp)) > 300:
+#             logger.error(f"request_id:{request_id}, timestamp:{timestamp}, wechat pay timestamp expired")
+#             return False
+        
+#         if not body:
+#             logger.info(f"request_id:{request_id}, wechat_pay_callback json data is None")
+#             return False
+        
+#         logger.info(f"request_id:{request_id}, body is a dict:{isinstance(body, dict)}, received JSON data: {body}")
+#         body_str = json.dumps(body, ensure_ascii=False) if isinstance(body, dict) else body
+#         body_str = body_str.replace(" ", "").replace("\n", "")
+
+#         pem_str = "\n".join([str(timestamp), nonce, body_str])
+#         pem_str += "\n"
+
+#         try:
+#             # 读取微信支付平台公钥
+#             with open(conf["WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH"], "rb") as f:
+#                 public_key = load_pem_public_key(f.read())
+                
+#             # Base64解码签名
+#             decoded_signature = base64.b64decode(signature)
+            
+#             # 验证签名
+#             try:
+#                 public_key.verify(
+#                     decoded_signature,
+#                     pem_str.encode('utf-8'),
+#                     padding.PKCS1v15(),
+#                     hashes.SHA256()
+#                 )
+#                 return True
+#             except Exception as e:
+#                 logger.error(f"request_id:{request_id}, signature verification failed: {traceback.format_exc()}")
+#                 return False
+                
+#         except Exception as e:
+#             logger.error(f"request_id:{request_id}, failed to load public key or verify signature: {traceback.format_exc()}")
+#             return False
+
+#     except Exception as e:
+#         logger.error(f"request_id:{request_id}, verify_pay_callback failed: {traceback.format_exc()}")
+#         return False
+
+
+# def decrypt_pay_callback_ciphertext(request_id, headers, body, conf):
+#     # nonce = headers.get('Wechatpay-Nonce')
+#     nonce = body["resource"]["nonce"]
+#     ciphertext = body["resource"]["ciphertext"]
+#     associated_data = body["resource"]["associated_data"]
+
+#     key = conf["WECHAT_PAY_API_PW"]
+#     key_bytes = str.encode(key)
+#     nonce_bytes = str.encode(nonce)
+#     ad_bytes = str.encode(associated_data)
+#     data = base64.b64decode(ciphertext)
+#     aesgcm = AESGCM(key_bytes)
+#     return aesgcm.decrypt(nonce_bytes, data, ad_bytes).decode('utf-8')
 
 # 示例调用
 if __name__ == "__main__":

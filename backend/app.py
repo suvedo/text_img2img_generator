@@ -188,25 +188,47 @@ def get_pricing_qr():
         request_id = random_util.generate_random_str(16)
         logger.info(f"got get_pricing_qr request, request_id:{request_id}")
         
-        # 生成二维码内容
         # 从请求中获取用户信息
         user_data = json.loads(request.form.get('user', '{}'))
-        # 将用户信息存入 session
         session['user'] = user_data
         logger.info(f"request_id:{request_id}, user:{session['user']}")
         user_id = user_account.get_email_in_session(session)
         if not user_id:
+            logger.error(f"request_id:{request_id}, not email found in session:{session['user']}")
             return jsonify(success=False, message="cannot get user email"), 500
-        order_type = "1" # 1
+        
+        
         out_trade_no = random_util.generate_random_str(16)
 
         pay_amount = int(json.loads(request.form.get('amount', '0')))
         if pay_amount <= 0:
+            logger.error(f"request_id:{request_id}, pay_amount={pay_amount}, less than 1")
             return jsonify(success=False, message="pay amount error"), 500
-        qr_url = wechat_pay.get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, app.config) 
+        amount_currency= 'CNY'
+
+        order_type = "1" # 1
+        attach_str = json.dumps({
+                            "user_id": user_id,
+                            "order_type": order_type
+                        }, ensure_ascii=False)
+        
+        # 生成二维码
+        qr_url = wechat_pay.get_native_pay_code_url(
+                        request_id, \
+                        app.config["WECHAT_PAY_NATIVE_DNS"], \
+                        app.config["WECHAT_PAY_NATIVE_PATH"], \
+                        app.config["WECHAT_PAY_APPID"], \
+                        app.config["WECHAT_PAY_MCHID"], \
+                        app.config["WECHAT_PAY_API_SERIAL_NO"], \
+                        app.config["WECHAT_PAY_PEM_PATH"], \
+                        out_trade_no, pay_amount, amount_currency, \
+                        attach_str, app.config["WECHAT_PAY_DISCRIPTION"], \
+                        app.config["WECHAT_PAY_NOTIFY_URL"], 15*60)
+        # qr_url = wechat_pay.get_code_url(request_id, user_id, pay_amount, order_type, out_trade_no, app.config) 
         # qr_content="weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"
         logger.info(f"request_id:{request_id}, get_pricing_qr, qr_url:{qr_url}")
         if not qr_url:
+            logger.error(f"request_id:{request_id}, qr url is empty")
             return jsonify(success=False, message="get wechat pay code fail"), 500
 
         # 将二维码保存到内存
@@ -215,8 +237,7 @@ def get_pricing_qr():
         img.save(buffer, format="PNG")
         buffer.seek(0)
 
-        # 返回二维码图片
-        # 设置响应头，包含订单参数
+        # 返回二维码图片， 设置响应头，包含订单参数
         response = make_response(send_file(buffer, mimetype='image/png'))
         response.headers['X-User-Id'] = user_id
         response.headers['X-Order-Type'] = order_type
@@ -235,9 +256,11 @@ async def wechat_pay_callback():
         logger.info(f"got wechat_pay_callback request, request_id:{request_id}")
         
         # 微信支付回调验证
-        if wechat_pay.verify_pay_callback(request_id, request.headers, request.get_json(), app.config):
+        if wechat_pay.verify_pay_callback(request_id, request.headers, request.get_json(), \
+                    app.config["WECHAT_PAY_API_SERIAL_NO"], \
+                    app.config["WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH"]):
             logger.info(f"request_id:{request_id}, wechat pay callback verify success")
-            asyncio.create_task(process_wechat_pay_callback(request_id, request.headers, request.get_json(), app.config))
+            asyncio.create_task(process_wechat_pay_callback(request_id, request.headers, request.get_json()))
             # 异步返回成功响应
             return jsonify({
                 "code": "200"
@@ -255,18 +278,18 @@ async def wechat_pay_callback():
             "message": "系统错误"
         })
 
-async def process_wechat_pay_callback(request_id, headers, body, conf):
+async def process_wechat_pay_callback(request_id, headers, body):
     """处理验证成功后的业务逻辑"""
     try:
         logger.info(f"request_id:{request_id}, start processing after verify")
+        
         # 解密回调数据
-        decrypted_ciphertext = wechat_pay.decrypt_pay_callback_ciphertext(request_id, headers, body, conf)
+        decrypted_ciphertext = wechat_pay.decrypt_pay_callback_ciphertext(request_id, \
+                                    headers, body, app.config["WECHAT_PAY_API_PW"])
         logger.info(f"request_id:{request_id}, decrypted ciphertext:{decrypted_ciphertext}")
+        
+        # 处理支付结果
         cipher_json = json.loads(decrypted_ciphertext)
-        if cipher_json.get("trade_state", "") != "SUCCESS":
-            logger.info(f"request_id:{request_id}, payment failed")
-            return
-        logger.info(f"request_id:{request_id}, payment success")
         attatch_json = json.loads(cipher_json.get("attach", "{}"))
         user_id = attatch_json.get("user_id", None)
         order_type = attatch_json.get("order_type", None)
@@ -274,10 +297,17 @@ async def process_wechat_pay_callback(request_id, headers, body, conf):
         if not user_id or not order_type or not out_trade_no:
             logger.error(f"request_id:{request_id}, invalid attach json:{attatch_json}")
             return
-        
+
+        # 支付结果入库
+        if cipher_json.get("trade_state", "") != "SUCCESS":
+            logger.info(f"request_id:{request_id}, payment failed")
+            payment_state_dao.set_payment_state(request_id, user_id, order_type, \
+                            out_trade_no, payment_state_dao.gen_paied_state(False))
+            return
+
+        logger.info(f"request_id:{request_id}, payment success")
         payment_state_dao.set_payment_state(request_id, user_id, order_type, \
-                                            out_trade_no, payment_state_dao.gen_paied_state(True))
-        return
+                            out_trade_no, payment_state_dao.gen_paied_state(True))
     except Exception as e:
         logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
 

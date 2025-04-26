@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect } from 'react'
+import { useState, ChangeEvent, useEffect, ChangeEventHandler } from 'react'
 import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import { AuroraText } from '@/components/magicui/aurora-text'
@@ -8,6 +8,7 @@ import { assert, Console } from 'console'
 import Navbar from '../components/Navbar'
 import LoginModal from '../components/LoginModal'
 import WechatPayModal from '../components/WechatPay'
+import { getQrCodeUrl } from '../components/WechatPay'
 import { API_BASE_URL } from '../config'
 
 
@@ -17,21 +18,23 @@ export default function Home() {
   const [uploadImageFileName, setUploadImageFileName] = useState('')
   // 用户输入的prompt
   const [prompt, setPrompt] = useState('')
-  // 是否初始化
-  const [isInitialized, setIsInitialized] = useState(false)
   // 登录模态框是否打开
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   // 微信支付模态框是否打开
   const [isWechatPayModalOpen, setIsWechatPayModalOpen] = useState(false)
+  // 微信支付二维码url
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | undefined>(undefined)
   // 支付金额
-  const [payAmount, setPayAmount] = useState('0')
+  const [payAmount, setPayAmount] = useState(0)
+  // 是否正在获取支付二维码
+  const [isGettingPricingQrCodeURL, setIsGettingPricingQrCodeURL] = useState(false)
   // 是否正在生成图片
   const [isGenerating, setIsGenerating] = useState(false)
   // 生成的图片的名称
   const [generatedImagePath, setGeneratedImagePath] = useState('')
   // 图片查看模态框，用户上传的图片和生成的图片都用这个模态框展示
   const [showImageModal, setShowImageModal] = useState(false)
-  const [modalImage, setModalImage] = useState('')
+  const [modalImage, setModalImage] = useState<string | undefined>(undefined)
 
   // 模板数据
   const promptTemplates = [
@@ -58,8 +61,6 @@ export default function Home() {
     if (savedGeneratedImagePath) setGeneratedImagePath(savedGeneratedImagePath)
     if (savedUploadImageFileName) setUploadImageFileName(savedUploadImageFileName)
     if (savedPrompt) setPrompt(savedPrompt)
-
-    //setIsInitialized(true)
   }, []) // 仅在组件挂载时执行一次
 
   // 保存状态到localStorage
@@ -67,33 +68,12 @@ export default function Home() {
     localStorage.setItem('savedUploadImageFileName', uploadImageFileName)
     localStorage.setItem('savedPrompt', prompt)
     localStorage.setItem('savedGeneratedImagePath', generatedImagePath)
-
-    // if (uploadImageFileName) {
-    //   localStorage.setItem('savedUploadImageFileName', uploadImageFileName)
-    // }
-    // if (prompt) {
-    //   localStorage.setItem('savedPrompt', prompt)
-    // }
-    // if (generatedImagePath) {
-    //   localStorage.setItem('savedGeneratedImagePath', generatedImagePath)
-    // }
   }
 
   // 在状态改变时保存
   useEffect(() => {
     saveStateToStorage()
-    // if (isInitialized) {
-      
-    //   saveStateToStorage()
-    // }
   }, [uploadImageFileName, prompt, generatedImagePath])
-
-  // 清除保存的状态
-  // const clearSavedState = () => {
-  //   localStorage.removeItem('savedUploadImageFileName')
-  //   localStorage.removeItem('savedPrompt')
-  //   localStorage.removeItem('savedGeneratedImagePath')
-  // }
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -125,12 +105,11 @@ export default function Home() {
     }
   }
 
-  const updatePrompt = (newPrompt: string) => {
-    setPrompt(newPrompt)
-    // localStorage.setItem('savedPrompt', newPrompt)
+  const updatePrompt = async (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setPrompt(e.target.value)
   }
 
-  const handlePurchase = async (amount: string) => {
+  const handlePurchase = async (payType: number) => {
     // 等待 session 加载完成
     if (status === 'loading') {
       return
@@ -142,9 +121,36 @@ export default function Home() {
       return
     }
 
-    setPayAmount(amount)
-    setIsWechatPayModalOpen(true)
+    if (!session.user.email) {
+      setIsLoginModalOpen(true)
+      return
+    }
 
+    setIsGettingPricingQrCodeURL(true)
+
+    var amount = 0
+    // switch (payType) {
+    //   case 1: { 
+    //     amount = 790;
+    //   }
+    //   default: amount = 0
+    // }
+    if (payType === 1) amount = 1;
+
+    try {
+      const qrUrl = await getQrCodeUrl(session.user.email, amount);
+      if (qrUrl !== "") {
+          setQrCodeUrl(qrUrl)
+          setPayAmount(amount)
+          setIsWechatPayModalOpen(true)
+      } else {
+        alert("get wechat pay qr failed")
+      }
+    } catch (error) {
+      alert("get wechat pay qr error")
+    } finally {
+      setIsGettingPricingQrCodeURL(false)
+    }
   }
 
   const handleSubmit = async () => {
@@ -217,13 +223,6 @@ export default function Home() {
     } catch (error) {
       console.error('Error during image generation:', error);
       alert('Error during image generation:' + error)
-      // if (error.message.includes('timed out')) {
-      //   alert('The request took too long. Please try again.');
-      // } else if (error.code === 'ECONNRESET') {
-      //   alert('The connection was reset. Please try again.');
-      // } else {
-      //   alert('An error occurred: ' + error.message);
-      // }
     } finally {
       setIsGenerating(false);
     }
@@ -233,6 +232,8 @@ export default function Home() {
     if (generatedImagePath) {
       // const filename = generatedImagePath.split('/').pop()
       window.open(`${API_BASE_URL}/gen_img/download/${generatedImagePath}`, '_blank')
+    } else {
+      alert('no image to download')
     }
   }
 
@@ -250,11 +251,12 @@ export default function Home() {
         isOpen={isWechatPayModalOpen} 
         onClose={() => {
           setIsWechatPayModalOpen(false)
-          setPayAmount('0')
+          setPayAmount(0)
+          setQrCodeUrl(undefined)
         }}
         payAmount={payAmount}
+        qrUrl={qrCodeUrl}
       />
-      
 
       <div className="container mt-5">
         {/* 欢迎消息 */}
@@ -334,7 +336,7 @@ export default function Home() {
                   className="form-control flex-grow-1 mb-3"
                   style={{ resize: 'none' }}
                   value={prompt}
-                  onChange={(e) => updatePrompt(e.target.value)}
+                  onChange={updatePrompt}
                 />
                 <button 
                   className="btn btn-primary btn-lg"
@@ -502,8 +504,22 @@ export default function Home() {
                             <h5 className="card-title">for trial</h5>
                             <div className="preview-area mt-3 flex-grow-1" id="preview">
                               <p>￥7.9 (ten times)</p>
-                              <button className="nav-link mx-2" onClick={() => handlePurchase('790')}>
-                                purchase
+                              <button 
+                                className="nav-link mx-2"
+                                onClick={() => {                                  
+                                  handlePurchase(1)
+                                }}
+                                disabled={isGettingPricingQrCodeURL}
+                              >
+                                {/* <i className="fas fa-magic me-2"></i> */}
+                                {isGettingPricingQrCodeURL ? (
+                                  <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    purchasing...
+                                  </>
+                                ) : (
+                                  'purchase'
+                                )}
                               </button>
                             </div>
                           </div>
@@ -552,7 +568,10 @@ export default function Home() {
       <div 
         className={`modal fade ${showImageModal ? 'show' : ''}`} 
         style={{ display: showImageModal ? 'block' : 'none' }}
-        onClick={() => setShowImageModal(false)}
+        onClick={() => {
+          setShowImageModal(false)
+          setModalImage(undefined)
+        }}
       >
         <div className="modal-dialog modal-dialog-centered modal-lg">
           <div className="modal-content">
@@ -561,13 +580,16 @@ export default function Home() {
                 type="button" 
                 className="delete-image-btn"
                 style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}
-                onClick={() => setShowImageModal(false)}
+                onClick={() => {
+                  setShowImageModal(false)
+                  setModalImage(undefined)
+                }}
               ><i className="fas fa-times"></i></button>
               <img 
                 src={modalImage} 
                 className="img-fluid" 
                 alt="Full size preview"
-                style={{ width: '100%', height: 'auto' }}
+                style={{ width: '100%', height: 'auto', display: modalImage ? 'block' : 'none' }}
               />
             </div>
           </div>
