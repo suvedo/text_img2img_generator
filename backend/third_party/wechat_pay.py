@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.backends import default_backend
 import traceback
 from datetime import datetime, timedelta, timezone
 
@@ -209,7 +210,6 @@ def sign_with_rsa(request_id, pem_str, private_key_path):
     try:
         # 读取商户私钥
         with open(private_key_path, "rb") as key_file:
-            from cryptography.hazmat.backends import default_backend
             private_key = load_pem_private_key(key_file.read(), password=None, backend=default_backend())
 
         # 对待签名串进行 SHA256 with RSA 签名
@@ -263,7 +263,7 @@ def verify_pay_callback(request_id, headers, body, \
         try:
             # 读取微信支付平台公钥
             with open(wechat_public_key_path, "rb") as f:
-                public_key = load_pem_public_key(f.read())
+                public_key = load_pem_public_key(f.read(), backend=default_backend())
                 
             # Base64解码签名
             decoded_signature = base64.b64decode(signature)
