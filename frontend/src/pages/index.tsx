@@ -141,7 +141,7 @@ export default function Home() {
     else if (payType === 4) amount = 4;
 
     try {
-      const qrUrl = await getQrCodeUrl(session.user.email, amount);
+      const qrUrl = await getQrCodeUrl(session.user.email, amount, payType);
       if (qrUrl !== "") {
           setQrCodeUrl(qrUrl)
           setPayAmount(amount)

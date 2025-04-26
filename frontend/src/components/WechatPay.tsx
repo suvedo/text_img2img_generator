@@ -69,7 +69,7 @@ function startPaymentPolling(userId: string, orderType: string, outTradeNo: stri
     poll();
 }
 
-export async function  getQrCodeUrl(email: string, payAmount: number): Promise<string> {
+export async function  getQrCodeUrl(email: string, payAmount: number, payType: number): Promise<string> {
     try {
         console.log("Fetching QR code for amount:", payAmount);
         const formData = new FormData();
@@ -79,6 +79,7 @@ export async function  getQrCodeUrl(email: string, payAmount: number): Promise<s
             id: email
         }));
         formData.append('amount', String(payAmount));
+        formData.append('orderType', String(payType));
         
         const response = await fetch(`${API_BASE_URL}/gen_img/get_pricing_qr`, {
             method: 'POST',

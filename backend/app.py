@@ -209,13 +209,14 @@ def get_pricing_qr():
         
         out_trade_no = random_util.generate_random_str(16)
 
-        pay_amount = int(json.loads(request.form.get('amount', '0')))
+        pay_amount = int(request.form.get('amount', '0'))
         if pay_amount <= 0:
             logger.error(f"request_id:{request_id}, pay_amount={pay_amount}, less than 1")
             return jsonify(success=False, message="pay amount error"), 500
         amount_currency= 'CNY'
 
-        order_type = "1" # 1
+        
+        order_type = request.form.get("orderType", "1")
         attach_str = json.dumps({
                             "user_id": user_id,
                             "order_type": order_type
