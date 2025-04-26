@@ -28,6 +28,9 @@ export default function Home() {
   const [payAmount, setPayAmount] = useState(0)
   // 是否正在获取支付二维码
   const [isGettingPricingQrCodeURL, setIsGettingPricingQrCodeURL] = useState(false)
+  const [isGettingPricingQrCodeURL2, setIsGettingPricingQrCodeURL2] = useState(false)
+  const [isGettingPricingQrCodeURL3, setIsGettingPricingQrCodeURL3] = useState(false)
+  const [isGettingPricingQrCodeURL4, setIsGettingPricingQrCodeURL4] = useState(false)
   // 是否正在生成图片
   const [isGenerating, setIsGenerating] = useState(false)
   // 生成的图片的名称
@@ -126,8 +129,6 @@ export default function Home() {
       return
     }
 
-    setIsGettingPricingQrCodeURL(true)
-
     var amount = 1
     // switch (payType) {
     //   case 1: { 
@@ -135,11 +136,20 @@ export default function Home() {
     //   }
     //   default: amount = 0
     // }
-    if (payType === 1) amount = 1;
-    else if (payType === 2) amount = 2;
-    else if (payType === 3) amount = 3;
-    else if (payType === 4) amount = 4;
-
+    if (payType === 1) {
+      setIsGettingPricingQrCodeURL(true);
+      amount = 1;
+    } else if (payType === 2) {
+      setIsGettingPricingQrCodeURL2(true);
+      amount = 2;
+    } else if (payType === 3) {
+      setIsGettingPricingQrCodeURL3(true);
+      amount = 3;
+    } else if (payType === 4) {
+      setIsGettingPricingQrCodeURL4(true);
+      amount = 4;
+    }
+    
     try {
       const qrUrl = await getQrCodeUrl(session.user.email, amount, payType);
       if (qrUrl !== "") {
@@ -152,7 +162,15 @@ export default function Home() {
     } catch (error) {
       alert("get wechat pay qr error")
     } finally {
-      setIsGettingPricingQrCodeURL(false)
+      if (payType === 1) {
+        setIsGettingPricingQrCodeURL(false)
+      } else if (payType === 2) {
+        setIsGettingPricingQrCodeURL2(false)
+      } else if (payType === 3) {
+        setIsGettingPricingQrCodeURL3(false)
+      } else if (payType === 4) {
+        setIsGettingPricingQrCodeURL4(false)
+      }
     }
   }
 
@@ -573,10 +591,10 @@ export default function Home() {
                                   onClick={() => {                                  
                                     handlePurchase(2)
                                   }}
-                                  disabled={isGettingPricingQrCodeURL}
+                                  disabled={isGettingPricingQrCodeURL2}
                                 >
                                   {/* <i className="fas fa-magic me-2"></i> */}
-                                  {isGettingPricingQrCodeURL ? (
+                                  {isGettingPricingQrCodeURL2 ? (
                                     <>
                                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                                       purchasing...
@@ -600,10 +618,10 @@ export default function Home() {
                                   onClick={() => {                                  
                                     handlePurchase(3)
                                   }}
-                                  disabled={isGettingPricingQrCodeURL}
+                                  disabled={isGettingPricingQrCodeURL3}
                                 >
                                   {/* <i className="fas fa-magic me-2"></i> */}
-                                  {isGettingPricingQrCodeURL ? (
+                                  {isGettingPricingQrCodeURL3 ? (
                                     <>
                                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                                       purchasing...
@@ -627,10 +645,10 @@ export default function Home() {
                                   onClick={() => {                                  
                                     handlePurchase(4)
                                   }}
-                                  disabled={isGettingPricingQrCodeURL}
+                                  disabled={isGettingPricingQrCodeURL4}
                                 >
                                   {/* <i className="fas fa-magic me-2"></i> */}
-                                  {isGettingPricingQrCodeURL ? (
+                                  {isGettingPricingQrCodeURL4 ? (
                                     <>
                                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                                       purchasing...
