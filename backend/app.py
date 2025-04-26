@@ -234,7 +234,7 @@ def get_pricing_qr():
         # 将二维码保存到内存
         img = qr_util.gen_qr_img_from_url(qr_url)
         buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
+        img.save(buffer, "PNG")
         buffer.seek(0)
 
         # 返回二维码图片， 设置响应头，包含订单参数
@@ -250,7 +250,7 @@ def get_pricing_qr():
 
 
 @app.route('/wechat_pay_callback', methods=['POST'])
-async def wechat_pay_callback():
+def wechat_pay_callback():
     try:
         request_id = random_util.generate_random_str(16)
         logger.info(f"got wechat_pay_callback request, request_id:{request_id}")
@@ -260,7 +260,12 @@ async def wechat_pay_callback():
                     app.config["WECHAT_PAY_API_SERIAL_NO"], \
                     app.config["WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH"]):
             logger.info(f"request_id:{request_id}, wechat pay callback verify success")
-            asyncio.create_task(process_wechat_pay_callback(request_id, request.headers, request.get_json()))
+            # asyncio.create_task(process_wechat_pay_callback(request_id, request.headers, request.get_json()))
+            from threading import Thread
+            thread = Thread(target=process_wechat_pay_callback, 
+                          args=(request_id, request.headers, request.get_json()))
+            thread.start()
+            
             # 异步返回成功响应
             return jsonify({
                 "code": "200"
@@ -278,7 +283,7 @@ async def wechat_pay_callback():
             "message": "系统错误"
         })
 
-async def process_wechat_pay_callback(request_id, headers, body):
+def process_wechat_pay_callback(request_id, headers, body):
     """处理验证成功后的业务逻辑"""
     try:
         logger.info(f"request_id:{request_id}, start processing after verify")
