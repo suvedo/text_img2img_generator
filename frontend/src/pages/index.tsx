@@ -128,7 +128,7 @@ export default function Home() {
 
     setIsGettingPricingQrCodeURL(true)
 
-    var amount = 0
+    var amount = 1
     // switch (payType) {
     //   case 1: { 
     //     amount = 790;
@@ -136,6 +136,9 @@ export default function Home() {
     //   default: amount = 0
     // }
     if (payType === 1) amount = 1;
+    else if (payType === 2) amount = 2;
+    else if (payType === 3) amount = 3;
+    else if (payType === 4) amount = 4;
 
     try {
       const qrUrl = await getQrCodeUrl(session.user.email, amount);
@@ -152,6 +155,41 @@ export default function Home() {
       setIsGettingPricingQrCodeURL(false)
     }
   }
+
+  // const substractCredits = async (num: number) => {
+  //   if (status === 'loading') {
+  //     return
+  //   }
+
+  //   // 检查登录状态
+  //   if (status !== 'authenticated' || !session?.user) {
+  //     setIsLoginModalOpen(true)
+  //     return
+  //   }
+
+  //   if (!session.user.email) {
+  //     setIsLoginModalOpen(true)
+  //     return
+  //   }
+
+  //   try {
+  //     const res = await fetch(`${API_BASE_URL}/gen_img/substract_credits/${session.user.email}/${num}`, {
+  //       method: 'POST',
+  //       credentials: 'include',
+  //       headers: {
+  //         'Accept': 'application/json',
+  //       },
+  //     })
+
+  //     if (!res.ok) {
+  //       throw new Error('Failed to subtract credits')
+  //     }
+    
+  //   } catch (error) {
+  //     console.error('Error subtracting credits:', error)
+  //     alert('Error subtracting credits:' + error)
+  //   }
+  // }
 
   const handleSubmit = async () => {
     if (!uploadImageFileName || !prompt) {
@@ -212,8 +250,7 @@ export default function Home() {
         
         if (data.success) {
           setGeneratedImagePath(data.img_id);
-          // 保存生成的图片路径到 localStorage
-          // localStorage.setItem('savedGeneratedImagePath', data.img_id);
+          // substractCredits(1)
         } else if (!data.isAuthenticated) {
           setIsLoginModalOpen(true);
         } else {
@@ -503,7 +540,7 @@ export default function Home() {
                           <div className="card-body d-flex flex-column">
                             <h5 className="card-title">for trial</h5>
                             <div className="preview-area mt-3 flex-grow-1" id="preview">
-                              <p>￥7.9 (ten times)</p>
+                              <p>￥7.9 (10 times)</p>
                               <button 
                                 className="nav-link mx-2"
                                 onClick={() => {                                  
@@ -530,7 +567,24 @@ export default function Home() {
                           <div className="card-body d-flex flex-column">
                             <h5 className="card-title">standard</h5>
                             <div className="preview-area mt-3 flex-grow-1" id="preview">
-                            
+                              <p>￥21.9 (30 times)</p>
+                                <button 
+                                  className="nav-link mx-2"
+                                  onClick={() => {                                  
+                                    handlePurchase(2)
+                                  }}
+                                  disabled={isGettingPricingQrCodeURL}
+                                >
+                                  {/* <i className="fas fa-magic me-2"></i> */}
+                                  {isGettingPricingQrCodeURL ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                      purchasing...
+                                    </>
+                                  ) : (
+                                    'purchase'
+                                  )}
+                                </button>
                             </div>
                           </div>
                         </div>
@@ -540,7 +594,24 @@ export default function Home() {
                           <div className="card-body d-flex flex-column">
                             <h5 className="card-title">premium</h5>
                             <div className="preview-area mt-3 flex-grow-1" id="preview">
-                            
+                              <p>￥33.9 (50 times)</p>
+                                <button 
+                                  className="nav-link mx-2"
+                                  onClick={() => {                                  
+                                    handlePurchase(3)
+                                  }}
+                                  disabled={isGettingPricingQrCodeURL}
+                                >
+                                  {/* <i className="fas fa-magic me-2"></i> */}
+                                  {isGettingPricingQrCodeURL ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                      purchasing...
+                                    </>
+                                  ) : (
+                                    'purchase'
+                                  )}
+                                </button>
                             </div>
                           </div>
                         </div>
@@ -550,7 +621,24 @@ export default function Home() {
                           <div className="card-body d-flex flex-column">
                             <h5 className="card-title">professional</h5>
                             <div className="preview-area mt-3 flex-grow-1" id="preview">
-                            
+                              <p>￥55.9 (100 times)</p>
+                                <button 
+                                  className="nav-link mx-2"
+                                  onClick={() => {                                  
+                                    handlePurchase(4)
+                                  }}
+                                  disabled={isGettingPricingQrCodeURL}
+                                >
+                                  {/* <i className="fas fa-magic me-2"></i> */}
+                                  {isGettingPricingQrCodeURL ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                      purchasing...
+                                    </>
+                                  ) : (
+                                    'purchase'
+                                  )}
+                                </button>
                             </div>
                           </div>
                         </div>

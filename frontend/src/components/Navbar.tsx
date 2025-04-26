@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 import LoginModal from './LoginModal'
+import { API_BASE_URL } from '../config'
+import { number } from 'motion'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -11,6 +13,33 @@ export default function Navbar() {
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
 
+  const [creditsRemain, setCreditsRemain] = useState<number | undefined>(undefined)
+
+  // const handleDropdown = () => {
+    
+  //   if (isDropdownOpen) {
+  //     fetch(`${API_BASE_URL}/gen_img/get_credits/${session?.user.email}`, {
+  //           method: 'GET',
+  //           headers: {
+  //             'Accept': 'application/json',
+  //           }
+  //         }).then((response) => {
+  //           if (response.ok) {
+  //             return response.json()
+  //           } else {
+  //             throw new Error('Network response was not ok')
+  //           };
+  //         }).then((data) => {
+  //           setCreditsRemain(data.credits_remain)
+  //         }).catch((error) => {
+  //           setCreditsRemain(undefined)
+  //           console.error(error);
+  //         });
+  //       }
+
+  //   setIsDropdownOpen(!isDropdownOpen)
+  // }
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
@@ -18,6 +47,28 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (isDropdownOpen) {
+      fetch(`${API_BASE_URL}/gen_img/get_credits/${session?.user.email}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then((response) => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Network response was not ok')
+        };
+      }).then((data) => {
+        setCreditsRemain(data.credits_remain)
+      }).catch((error) => {
+        setCreditsRemain(undefined)
+        console.error(error);
+      });
+    }
+  }, [isDropdownOpen])
 
   return (
     <nav className={`navbar navbar-expand-lg navbar-light ${isScrolled ? 'scrolled' : ''}`}>
@@ -42,6 +93,9 @@ export default function Navbar() {
                 {session.user.email}
               </button>
               <ul className={`dropdown-menu dropdown-menu-end ${isDropdownOpen ? 'show' : ''}`}>
+                <li>
+                  <p className="dropdown-item"><b>{creditsRemain}</b> credits</p>
+                </li>
                 <li>
                   <button className="dropdown-item" onClick={() => signOut()}>Log out</button>
                 </li>

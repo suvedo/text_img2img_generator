@@ -17,7 +17,7 @@ import third_party.wechat_pay as wechat_pay
 from utils.log_util import logger
 from utils import random_util
 from utils import qr_util
-from database import payment_state_dao
+from database import payment_state_dao, user_credits_dao
 from database.db_model import db
 from account import user_account
 
@@ -78,7 +78,13 @@ def process():
         return jsonify(success=False, isAuthenticated=auth, message=str(e))
         
     logger.info(f"request_id:{request_id}, user:{session['user']}")
-        
+
+    user_credits_cnt = user_credits_dao.get_user_credits(request_id, user_data['email'])
+    if not user_credits_cnt \
+            or user_credits_cnt < app.config['CONSUME_CREDITS_CNT_PER_GENERATION']:
+        logger.error(f"request_id:{request_id}, user:{session['user']}, credits not enough")
+        return jsonify(success=False, isAuthenticated=auth, message="remaining credits is not enough")
+ 
     try:
         # 获取图片文件名
         image_filename = request.form.get('image')
@@ -154,6 +160,9 @@ def process():
             if not img_path:
                 logger.error(f"request_id:{request_id}, generate image failed")
                 return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
+            
+            user_credits_dao.add_user_credits(request_id, user_data['email'], \
+                                              -app.config['CONSUME_CREDITS_CNT_PER_GENERATION'])
             
             return jsonify(
                 success=True, 
@@ -370,7 +379,7 @@ def signup():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got signup request, request_id:{request_id}")
     data = request.get_json()
-    return user_account.signup(request_id, data, session)
+    return user_account.signup(request_id, data, session, app.config['NEW_USER_FREE_CREDITS_COUNT'])
 
 # @app.route('/api/logout', methods=['POST'])
 # def logout():
@@ -447,6 +456,42 @@ def get_uploaded_image(filename):
         )
     except Exception as e:
         return str(e), 404
+    
+@app.route('/gen_img/get_credits/<path:user_id>', methods=['GET'])
+def get_credits(user_id):
+    """
+    获取剩余积分
+    """
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got get_credits request, request_id:{request_id}, user_id:{user_id}")
+    try:
+        # 检查数据库连接
+        credits_num = user_credits_dao.get_user_credits(request_id, user_id)
+        if credits_num is None:
+            return jsonify(success=False, message="get credits failed"), 500
+        return jsonify(success=True, message="get credits success", credits_remain=credits_num), 200
+    except Exception as e:
+        logger.error(f"get user credits failed: {str(e)}")
+        return jsonify(success=False, message="get credits exception"), 500
+
+@app.route('/gen_img/substract_credits/<path:user_id>/<path:credits_num>', methods=['POST'])
+def substract_credits(user_id, credits_num):
+    """
+    扣除积分
+    """
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got substract_credits request, request_id:{request_id}, user_id:{user_id}, credits_num:{credits_num}")
+    try:
+        credits_num = int(credits_num)
+        if credits_num < 0:
+            return jsonify(success=False, message="credits num error"), 500
+        if not user_credits_dao.add_user_credits(request_id, user_id, -credits_num):
+            return jsonify(success=False, message="substract credits failed"), 500
+        return jsonify(success=True, message="substract credits success"), 200
+    except Exception as e:
+        logger.error(f"substract user credits failed: {str(e)}")
+        return jsonify(success=False, message="substract credits exception"), 500
+
 
 if __name__ == '__main__':
     from hypercorn.config import Config

@@ -2,6 +2,7 @@ from flask import jsonify
 import re
 
 from database.user_dao import User, db
+from database import user_credits_dao
 from utils.log_util import logger
 
 
@@ -66,7 +67,7 @@ def logout(request_id, session):
         return jsonify(ok=False, msg='user not logged in')
 
 
-def signup(request_id, data, session):
+def signup(request_id, data, session, new_user_credits):
     email = data.get('email')
     password = data.get('password')
 
@@ -95,6 +96,10 @@ def signup(request_id, data, session):
         user.set_password(password)
         user.set_email(email)
         db.session.add(user)
+
+        credit = user_credits_dao.UserCredits(user_id=email, credit_count=new_user_credits)
+        db.session.add(credit)
+
         db.session.commit()
         return jsonify(ok=True, msg="sign up successful")
     except Exception as e:
