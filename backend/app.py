@@ -257,7 +257,7 @@ def wechat_pay_callback():
         
         # 微信支付回调验证
         if wechat_pay.verify_pay_callback(request_id, request.headers, request.get_json(), \
-                    app.config["WECHAT_PAY_API_SERIAL_NO"], \
+                    app.config["WECHAT_PAY_SERIAL_NO"], \
                     app.config["WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH"]):
             logger.info(f"request_id:{request_id}, wechat pay callback verify success")
             # asyncio.create_task(process_wechat_pay_callback(request_id, request.headers, request.get_json()))
