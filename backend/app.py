@@ -285,36 +285,37 @@ def wechat_pay_callback():
 
 def process_wechat_pay_callback(request_id, headers, body):
     """处理验证成功后的业务逻辑"""
-    try:
-        logger.info(f"request_id:{request_id}, start processing after verify")
-        
-        # 解密回调数据
-        decrypted_ciphertext = wechat_pay.decrypt_pay_callback_ciphertext(request_id, \
-                                    headers, body, app.config["WECHAT_PAY_API_PW"])
-        logger.info(f"request_id:{request_id}, decrypted ciphertext:{decrypted_ciphertext}")
-        
-        # 处理支付结果
-        cipher_json = json.loads(decrypted_ciphertext)
-        attatch_json = json.loads(cipher_json.get("attach", "{}"))
-        user_id = attatch_json.get("user_id", None)
-        order_type = attatch_json.get("order_type", None)
-        out_trade_no = cipher_json.get("out_trade_no", None)
-        if not user_id or not order_type or not out_trade_no:
-            logger.error(f"request_id:{request_id}, invalid attach json:{attatch_json}")
-            return
+    with app.app_context():
+        try:
+            logger.info(f"request_id:{request_id}, start processing after verify")
+            
+            # 解密回调数据
+            decrypted_ciphertext = wechat_pay.decrypt_pay_callback_ciphertext(request_id, \
+                                        headers, body, app.config["WECHAT_PAY_API_PW"])
+            logger.info(f"request_id:{request_id}, decrypted ciphertext:{decrypted_ciphertext}")
+            
+            # 处理支付结果
+            cipher_json = json.loads(decrypted_ciphertext)
+            attatch_json = json.loads(cipher_json.get("attach", "{}"))
+            user_id = attatch_json.get("user_id", None)
+            order_type = attatch_json.get("order_type", None)
+            out_trade_no = cipher_json.get("out_trade_no", None)
+            if not user_id or not order_type or not out_trade_no:
+                logger.error(f"request_id:{request_id}, invalid attach json:{attatch_json}")
+                return
 
-        # 支付结果入库
-        if cipher_json.get("trade_state", "") != "SUCCESS":
-            logger.info(f"request_id:{request_id}, payment failed")
+            # 支付结果入库
+            if cipher_json.get("trade_state", "") != "SUCCESS":
+                logger.info(f"request_id:{request_id}, payment failed")
+                payment_state_dao.set_payment_state(request_id, user_id, order_type, \
+                                out_trade_no, payment_state_dao.gen_paied_state(False))
+                return
+
+            logger.info(f"request_id:{request_id}, payment success")
             payment_state_dao.set_payment_state(request_id, user_id, order_type, \
-                            out_trade_no, payment_state_dao.gen_paied_state(False))
-            return
-
-        logger.info(f"request_id:{request_id}, payment success")
-        payment_state_dao.set_payment_state(request_id, user_id, order_type, \
-                            out_trade_no, payment_state_dao.gen_paied_state(True))
-    except Exception as e:
-        logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
+                                out_trade_no, payment_state_dao.gen_paied_state(True))
+        except Exception as e:
+            logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
 
 
 @app.route('/gen_img/query_payment_status', methods=['POST'])

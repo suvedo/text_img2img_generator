@@ -1,6 +1,5 @@
 from database.db_model import db
 from utils.log_util import logger
-from flask import current_app
 
 class UserPayment(db.Model):
     __tablename__ = 'user_payment'
@@ -48,18 +47,17 @@ def get_payment_state(request_id, user_id, order_type, out_trade_no):
     :param order_no: 订单号
     :return: 支付状态
     """
-    with current_app.app_context():
-        try:
-            order_no = format_order_no(user_id, order_type, out_trade_no)
-            payment = UserPayment.query.filter_by(order_no=order_no).first()
-            if not payment:
-                return None
-            state = payment.pay_state
-            logger.info(f"request_id:{request_id}, get payment state for order_no:{order_no}, state:{state}")
-            return state
-        except Exception as e:
-            logger.error(f"request_id:{request_id}, error in get_payment_state: {str(e)}")
+    try:
+        order_no = format_order_no(user_id, order_type, out_trade_no)
+        payment = UserPayment.query.filter_by(order_no=order_no).first()
+        if not payment:
             return None
+        state = payment.pay_state
+        logger.info(f"request_id:{request_id}, get payment state for order_no:{order_no}, state:{state}")
+        return state
+    except Exception as e:
+        logger.error(f"request_id:{request_id}, error in get_payment_state: {str(e)}")
+        return None
 
 
 def set_payment_state(request_id, user_id, order_type, out_trade_no, state):
@@ -69,37 +67,36 @@ def set_payment_state(request_id, user_id, order_type, out_trade_no, state):
     :param order_no: 订单号
     :param state: 支付状态, 已转换为字符串
     """
-    with current_app.app_context():
-        try:
-            order_no = format_order_no(user_id, order_type, out_trade_no)
-            # 先查询是否存在
-            payment = UserPayment.query.filter_by(order_no=order_no).first()
-            
-            if payment:
-                # 如果存在，更新状态
-                payment.pay_state = state
-            else:
-                # 如果不存在，创建新记录
-                payment = UserPayment(
-                    order_no=order_no,
-                    user_id=user_id,
-                    order_type=order_type,
-                    out_trade_no=out_trade_no,
-                    pay_state=state
-                )
-                db.session.add(payment)
-            
-            if success_paid(state):
-                logger.info(f"request_id:{request_id}, set payment state for order_no:{order_no}, state:{state}")
-            
-            db.session.commit()
+    try:
+        order_no = format_order_no(user_id, order_type, out_trade_no)
+        # 先查询是否存在
+        payment = UserPayment.query.filter_by(order_no=order_no).first()
+        
+        if payment:
+            # 如果存在，更新状态
+            payment.pay_state = state
+        else:
+            # 如果不存在，创建新记录
+            payment = UserPayment(
+                order_no=order_no,
+                user_id=user_id,
+                order_type=order_type,
+                out_trade_no=out_trade_no,
+                pay_state=state
+            )
+            db.session.add(payment)
+        
+        if success_paid(state):
             logger.info(f"request_id:{request_id}, set payment state for order_no:{order_no}, state:{state}")
-            
-            return True
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"request_id:{request_id}, error in set_payment_state: {str(e)}")
-            return False
+        
+        db.session.commit()
+        logger.info(f"request_id:{request_id}, set payment state for order_no:{order_no}, state:{state}")
+        
+        return True
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"request_id:{request_id}, error in set_payment_state: {str(e)}")
+        return False
 
 
 def remove_payment_state(request_id, user_id, order_type, out_trade_no):
@@ -108,14 +105,13 @@ def remove_payment_state(request_id, user_id, order_type, out_trade_no):
     :param request_id: 请求ID
     :param order_no: 订单号
     """
-    with current_app.app_context():
-        try:
-            order_no = format_order_no(user_id, order_type, out_trade_no)
-            payment = UserPayment.query.filter_by(order_no=order_no).first()
-            if payment:
-                db.session.delete(payment)
-                db.session.commit()
-                logger.info(f"request_id:{request_id}, remove payment state for order_no:{order_no}")
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"request_id:{request_id}, error in remove_payment_state: {str(e)}")
+    try:
+        order_no = format_order_no(user_id, order_type, out_trade_no)
+        payment = UserPayment.query.filter_by(order_no=order_no).first()
+        if payment:
+            db.session.delete(payment)
+            db.session.commit()
+            logger.info(f"request_id:{request_id}, remove payment state for order_no:{order_no}")
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"request_id:{request_id}, error in remove_payment_state: {str(e)}")
