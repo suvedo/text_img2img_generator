@@ -2,6 +2,7 @@ from database.db_model import db
 from datetime import datetime
 
 from utils.log_util import logger
+from database.user_credits_dao import UserCredits
 
 class UserPayment(db.Model):
     __tablename__ = 'user_payment'
@@ -62,7 +63,7 @@ def get_payment_state(request_id, user_id, order_type, out_trade_no):
         return None
 
 
-def set_payment_state(request_id, user_id, order_type, out_trade_no, state):
+def set_payment_state(request_id, user_id, order_type, out_trade_no, state, credit_add_num):
     """
     设置支付状态
     :param request_id: 请求ID
@@ -89,10 +90,15 @@ def set_payment_state(request_id, user_id, order_type, out_trade_no, state):
             db.session.add(payment)
         
         if success_paid(state):
-            logger.info(f"request_id:{request_id}, set payment state for order_no:{order_no}, state:{state}")
+            user_credits = UserCredits.query.filter_by(user_id=user_id).first()
+            if user_credits:
+                user_credits.credit_count += credit_add_num
+            else:
+                user_credits = UserCredits(user_id=user_id, credit_count=credit_add_num)
+                db.session.add(user_credits)
         
         db.session.commit()
-        logger.info(f"request_id:{request_id}, set payment state for order_no:{order_no}, state:{state}")
+        logger.info(f"request_id:{request_id}, finish setting payment state for order_no:{order_no}, state:{state}, credit_add_num:{credit_add_num}")
         
         return True
     except Exception as e:

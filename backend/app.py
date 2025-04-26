@@ -303,17 +303,23 @@ def process_wechat_pay_callback(request_id, headers, body):
             if not user_id or not order_type or not out_trade_no:
                 logger.error(f"request_id:{request_id}, invalid attach json:{attatch_json}")
                 return
-
+            
             # 支付结果入库
             if cipher_json.get("trade_state", "") != "SUCCESS":
                 logger.info(f"request_id:{request_id}, payment failed")
                 payment_state_dao.set_payment_state(request_id, user_id, order_type, \
-                                out_trade_no, payment_state_dao.gen_paied_state(False))
+                                out_trade_no, payment_state_dao.gen_paied_state(False), 0)
                 return
 
+            if order_type not in app.config['PAY_TYPE2_CREDIT_NUM_DICT']:
+                logger.error(f"request_id:{request_id}, invalid order_type:{order_type}")
+                return
+            
+            credit_add_num = app.config['PAY_TYPE2_CREDIT_NUM_DICT'][order_type]
+            
             logger.info(f"request_id:{request_id}, payment success")
             payment_state_dao.set_payment_state(request_id, user_id, order_type, \
-                                out_trade_no, payment_state_dao.gen_paied_state(True))
+                                out_trade_no, payment_state_dao.gen_paied_state(True), credit_add_num)
         except Exception as e:
             logger.error(f"request_id:{request_id}, error in after process: {traceback.format_exc()}")
 
