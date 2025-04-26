@@ -33,23 +33,13 @@ function startPaymentPolling(userId: string, orderType: string, outTradeNo: stri
             
             if (result.success) {
                 if (result.paid) {
-                    const toastElement = document.getElementById('paymentSuccessToast');
-                    if (toastElement) {
-                        const toast = bootstrap.Toast.getInstance(toastElement as Element) || new bootstrap.Toast(toastElement as Element);
-                        toast.show();
-                    }
-                    
+                    alert('payment success, page will refresh in 3 seconds...');
                     setTimeout(() => {
                         window.location.reload();
                     }, 3000);
                     return;
                 } else {
-                    const toastElement = document.getElementById('paymentFailedToast');
-                    if (toastElement) {
-                        const toast = bootstrap.Toast.getInstance(toastElement as Element) || new bootstrap.Toast(toastElement as Element);
-                        toast.show();
-                    }
-                    
+                    alert('payment failed, page will refresh in 3 seconds...');
                     setTimeout(() => {
                         window.location.reload();
                     }, 3000);
@@ -62,14 +52,8 @@ function startPaymentPolling(userId: string, orderType: string, outTradeNo: stri
             if (pollCount < maxPollCount) {
                 setTimeout(poll, pollInterval);
             } else {
-                console.log('支付超时');
-                // 显示支付失败的 Toast
-                const toastElement = document.getElementById('paymentFailedTimeoutToast');
-                if (toastElement) {
-                    const toast = bootstrap.Toast.getInstance(toastElement as Element) || new bootstrap.Toast(toastElement as Element);
-                    toast.show();
-                }
-                
+                console.log('payment timeout');
+                alert('payment timeout, page will refresh in 3 seconds...');
                 setTimeout(() => {
                     window.location.reload();
                 }, 3000);
@@ -77,6 +61,7 @@ function startPaymentPolling(userId: string, orderType: string, outTradeNo: stri
             }
         } catch (error) {
             console.error('轮询出错:', error);
+            alert('get payment result error');
         }
     };
     
@@ -171,8 +156,8 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
         </div>
 
         {/* Toast 消息 */}
-      <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>
-        {/* Payment Success Toast */}
+      {/* <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>
+        
         <div id="paymentSuccessToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
           <div className="toast-header bg-success text-white">
             <strong className="me-auto">payment successful</strong>
@@ -183,7 +168,6 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
           </div>
         </div>
 
-        {/* Payment Failed Toast */}
         <div id="paymentFailedToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
           <div className="toast-header bg-success text-white">
             <strong className="me-auto">payment failed</strong>
@@ -194,7 +178,6 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
           </div>
         </div>
 
-        {/* Payment Timeout Toast */}
         <div id="paymentFailedTimeoutToast" className="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
           <div className="toast-header bg-success text-white">
             <strong className="me-auto">payment timed out</strong>
@@ -204,7 +187,7 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
             payment incomplete, page will refresh shortly...
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   )
 
