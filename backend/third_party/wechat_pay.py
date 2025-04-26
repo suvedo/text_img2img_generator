@@ -51,6 +51,10 @@ def get_native_pay_code_url(request_id, wechat_pay_dns, native_pay_path, \
         timestamp = str(int(time.time()))
         signature = get_auth(request_id, native_pay_path, apiclient_key_path, \
                                 payload_str, timestamp, random_str)
+        if not signature:
+            logger.error(f"request_id:{request_id}, failed to get wechat pay signature")
+            return None
+
         auth = f'WECHATPAY2-SHA256-RSA2048 ' + \
             f'mchid="{mchid}",nonce_str="{random_str}",signature="{signature}",' + \
             f'timestamp="{timestamp}",serial_no="{api_serial_no}"'
@@ -60,9 +64,7 @@ def get_native_pay_code_url(request_id, wechat_pay_dns, native_pay_path, \
         #                     signature=signature, \
         #                     timestamp=timestamp, \
         #                     serial_no=api_serial_no)
-        if not auth:
-            logger.error(f"request_id:{request_id}, failed to get wechat pay auth")
-            return None
+        
         
         logger.info(f"request_id:{request_id}, auth:{auth}")
         
@@ -207,7 +209,8 @@ def sign_with_rsa(request_id, pem_str, private_key_path):
     try:
         # 读取商户私钥
         with open(private_key_path, "rb") as key_file:
-            private_key = load_pem_private_key(key_file.read(), password=None)
+            from cryptography.hazmat.backends import default_backend
+            private_key = load_pem_private_key(key_file.read(), password=None, backend=default_backend())
 
         # 对待签名串进行 SHA256 with RSA 签名
         signature = private_key.sign(
