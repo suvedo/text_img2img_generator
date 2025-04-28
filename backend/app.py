@@ -215,7 +215,6 @@ def get_pricing_qr():
             return jsonify(success=False, message="pay amount error"), 500
         amount_currency= 'CNY'
 
-        
         order_type = request.form.get("orderType", "1")
         attach_str = json.dumps({
                             "user_id": user_id,

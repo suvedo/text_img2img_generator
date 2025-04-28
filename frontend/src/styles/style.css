@@ -63,7 +63,7 @@ body {
     border: 1px solid rgba(100, 223, 223, 0.2);
 }
 
-.preview-area {
+/* .preview-area {
     min-height: 300px;
     border: 2px dashed rgba(100, 223, 223, 0.2);
     border-radius: 15px;
@@ -72,7 +72,7 @@ body {
     justify-content: center;
     background: rgba(248, 249, 250, 0.7);
     transition: all 0.3s ease;
-}
+} */
 
 .preview-area:hover {
     border-color: var(--primary-color);
@@ -575,7 +575,99 @@ h1 {
     border: 1px solid rgba(100, 223, 223, 0.2);
 }
 
+.pricing-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 1rem;
+}
+
+.price-amount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.price-times {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    padding-left: 10px;
+}
+
+.purchase-button {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color) !important;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.purchase-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: var(--accent-color) !important;
+}
+
+.purchase-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.feature-list {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.feature-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* .feature-icon {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+} */
+
 /* 平滑滚动 */
 html {
     scroll-behavior: smooth;
+}
+
+.pricing-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 15px;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.pricing-card:hover {
+    transform: none;
+    box-shadow: var(--glass-shadow);
+    border: none;
 }

@@ -130,8 +130,8 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
     if (!isOpen) return null
 
     const modalContent = (
-        <>
-        <div className={`modal ${isOpen ? 'show' : ''}`} 
+      <>
+        <div className={`modal fade ${isOpen ? 'show' : ''}`} 
              style={{ display: isOpen ? 'block' : 'none' }}>
             <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
@@ -155,6 +155,9 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
             </div>
             </div>
         </div>
+        {isOpen && (
+          <div className="modal-backdrop fade show"></div>
+        )}
 
         {/* Toast 消息 */}
       {/* <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>

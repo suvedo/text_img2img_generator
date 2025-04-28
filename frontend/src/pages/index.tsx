@@ -328,7 +328,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
 
         <div className="row mb-4">
           {/* 图片上传区域 */}
@@ -436,7 +435,7 @@ export default function Home() {
           </div>
         </div>
 
-       {/* Generated image preview */}
+        {/* Generated image preview */}
         <div className="row mb-4">
           <div className="col-md-12">
                   <div className="card mb-4">
@@ -550,113 +549,377 @@ export default function Home() {
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">Pricing</h5>
-                <div className="user-cases-container">
-                  <div className="user-case-item">
-                    <div className="row align-items-center">
-                      <div className="col-md-3">
-                        <div className="card h-100">
-                          <div className="card-body d-flex flex-column">
-                            <h5 className="card-title">for trial</h5>
-                            <div className="preview-area mt-3 flex-grow-1" id="preview">
-                              <p>￥7.9 (10 times)</p>
+                <div className="row align-items-center">
+                  <div className="col-md-3">
+                    <div className="card pricing-card h-100">
+                      <div className="card-body d-flex flex-column">
+                        <h5 className="card-title">for trial</h5>
+                        <div className="preview-area mt-3 flex-grow-1" id="pricingAera1">
+                          <div className="pricing-item">
+                              <div>
+                                  <span className="price-amount">￥7.9</span>
+                                  <span className="price-times">[10 times]</span>
+                              </div>
                               <button 
-                                className="nav-link mx-2"
-                                onClick={() => {                                  
-                                  handlePurchase(1)
-                                }}
-                                disabled={isGettingPricingQrCodeURL}
+                                  className="purchase-button"
+                                  onClick={() => handlePurchase(1)}
+                                  disabled={isGettingPricingQrCodeURL}
                               >
-                                {/* <i className="fas fa-magic me-2"></i> */}
-                                {isGettingPricingQrCodeURL ? (
-                                  <>
-                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    purchasing...
-                                  </>
-                                ) : (
-                                  'purchase'
-                                )}
+                                  {isGettingPricingQrCodeURL ? (
+                                      <>
+                                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                          purchasing...
+                                      </>
+                                  ) : (
+                                      'purchase'
+                                  )}
                               </button>
-                            </div>
+                              <div className="feature-list">
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>10 pictures</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>high quality download</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>built in prompts</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>all styles</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                    className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>no watermarks</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>no advertisements</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>commercial usage rights</span>
+                                </div>
+                              </div>
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-3">
-                        <div className="card h-100">
-                          <div className="card-body d-flex flex-column">
-                            <h5 className="card-title">standard</h5>
-                            <div className="preview-area mt-3 flex-grow-1" id="preview">
-                              <p>￥21.9 (30 times)</p>
-                                <button 
-                                  className="nav-link mx-2"
-                                  onClick={() => {                                  
-                                    handlePurchase(2)
-                                  }}
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="card pricing-card h-100">
+                      <div className="card-body d-flex flex-column">
+                        <h5 className="card-title">standard</h5>
+                        <div className="preview-area mt-3 flex-grow-1" id="pricingAera2">
+                          <div className="pricing-item">
+                              <div>
+                                  <span className="price-amount">￥21.9</span>
+                                  <span className="price-times">[30 times]</span>
+                              </div>
+                              <button 
+                                  className="purchase-button"
+                                  onClick={() => handlePurchase(2)}
                                   disabled={isGettingPricingQrCodeURL2}
-                                >
-                                  {/* <i className="fas fa-magic me-2"></i> */}
+                              >
                                   {isGettingPricingQrCodeURL2 ? (
-                                    <>
-                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                      purchasing...
-                                    </>
+                                      <>
+                                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                          purchasing...
+                                      </>
                                   ) : (
-                                    'purchase'
+                                      'purchase'
                                   )}
-                                </button>
+                              </button>
+                              <div className="feature-list">
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>30 pictures</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>high quality download</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>built in prompts</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>all styles</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                    className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>no watermarks</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>no advertisements</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>commercial usage rights</span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
                         </div>
                       </div>
-                      <div className="col-md-3">
-                        <div className="card h-100">
-                          <div className="card-body d-flex flex-column">
-                            <h5 className="card-title">premium</h5>
-                            <div className="preview-area mt-3 flex-grow-1" id="preview">
-                              <p>￥33.9 (50 times)</p>
-                                <button 
-                                  className="nav-link mx-2"
-                                  onClick={() => {                                  
-                                    handlePurchase(3)
-                                  }}
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="card pricing-card h-100">
+                      <div className="card-body d-flex flex-column">
+                        <h5 className="card-title">premium</h5>
+                        <div className="preview-area mt-3 flex-grow-1" id="pricingAera3">
+                          <div className="pricing-item">
+                              <div>
+                                  <span className="price-amount">￥33.9</span>
+                                  <span className="price-times">[50 times]</span>
+                              </div>
+                              <button 
+                                  className="purchase-button"
+                                  onClick={() => handlePurchase(3)}
                                   disabled={isGettingPricingQrCodeURL3}
-                                >
-                                  {/* <i className="fas fa-magic me-2"></i> */}
+                              >
                                   {isGettingPricingQrCodeURL3 ? (
-                                    <>
-                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                      purchasing...
-                                    </>
+                                      <>
+                                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                          purchasing...
+                                      </>
                                   ) : (
-                                    'purchase'
+                                      'purchase'
                                   )}
-                                </button>
+                              </button>
+                              <div className="feature-list">
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>50 pictures</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>high quality download</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>built in prompts</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>all styles</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                    className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>no watermarks</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>no advertisements</span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span>commercial usage rights</span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
                         </div>
                       </div>
-                      <div className="col-md-3">
-                        <div className="card h-100">
-                          <div className="card-body d-flex flex-column">
-                            <h5 className="card-title">professional</h5>
-                            <div className="preview-area mt-3 flex-grow-1" id="preview">
-                              <p>￥55.9 (100 times)</p>
-                                <button 
-                                  className="nav-link mx-2"
-                                  onClick={() => {                                  
-                                    handlePurchase(4)
-                                  }}
-                                  disabled={isGettingPricingQrCodeURL4}
-                                >
-                                  {/* <i className="fas fa-magic me-2"></i> */}
-                                  {isGettingPricingQrCodeURL4 ? (
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="card pricing-card h-100">
+                      <div className="card-body d-flex flex-column">
+                        <h5 className="card-title">professional</h5>
+                        <div className="preview-area mt-3 flex-grow-1" id="pricingAera4">
+                          <div className="pricing-item">
+                            <div>
+                                <span className="price-amount">￥55.9</span>
+                                <span className="price-times">[100 times]</span>
+                            </div>
+                            <button 
+                                className="purchase-button"
+                                onClick={() => handlePurchase(4)}
+                                disabled={isGettingPricingQrCodeURL4}
+                            >
+                                {isGettingPricingQrCodeURL4 ? (
                                     <>
-                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                      purchasing...
+                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        purchasing...
                                     </>
-                                  ) : (
+                                ) : (
                                     'purchase'
-                                  )}
-                                </button>
+                                )}
+                            </button>
+                            <div className="feature-list">
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span><b>100 pictures</b></span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span>high quality download</span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span><b>built in prompts</b></span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span>all styles</span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                  className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span>no watermarks</span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span>no advertisements</span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span>commercial usage rights</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -667,8 +930,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>  
+      
       </div>
-    </div>
 
       {/* 图片查看模态框 */}
       <div 
@@ -704,8 +968,6 @@ export default function Home() {
       {showImageModal && (
         <div className="modal-backdrop fade show"></div>
       )}
-
-      
     </>
   )
 }
