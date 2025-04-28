@@ -7,6 +7,7 @@ import { assert, Console } from 'console'
 
 import Navbar from '../components/Navbar'
 import LoginModal from '../components/LoginModal'
+import Footer from '../components/Footer'
 import WechatPayModal from '../components/WechatPay'
 import { getQrCodeUrl } from '../components/WechatPay'
 import { API_BASE_URL } from '../config'
@@ -38,6 +39,8 @@ export default function Home() {
   // 图片查看模态框，用户上传的图片和生成的图片都用这个模态框展示
   const [showImageModal, setShowImageModal] = useState(false)
   const [modalImage, setModalImage] = useState<string | undefined>(undefined)
+  // 用户生图区域的记录
+  const [userCreationList, setUserCreationList] = useState<string[]>([])
 
   // 模板数据
   const promptTemplates = [
@@ -48,11 +51,114 @@ export default function Home() {
     "A beautiful girl reading book, high quality."
   ]
 
-  useEffect(() => {
-    console.log("debug session:", session)
-  }, 
-  [session]
-  )
+  const userCaseArr = [
+    [
+      "/images/origin2.jpg",
+      "You are an advanced AI image generation model. Your task is to transform the provided portrait image of a person by replacing their outfit and accessories with those of the character Furina (also known as Focalors) from the game Genshin Impact. Follow the instructions carefully:\n"
+        + "1. Change the person's clothing to match Furina's official outfit:\n"
+        +"- Elegant, theatrical, noble blue-themed outfit with white and silver elements.\n"
+        +"- High collar, puffed sleeves, layered skirt with dramatic flair.\n"
+        +"- Add water-themed accessories, such as water droplet-shaped gems and motifs.\n"
+        +"\n"
+        +"2. Include Furina's signature props:\n"
+        +"- A small floating water elemental creature (Gowne) near her shoulder.\n"
+        +"- Optionally include a staff, cane, or theatrical baton-style prop that looks elegant and symbolic.\n"
+        +"\n"
+        +"3. Style and aesthetics:\n"
+        +"- Maintain anime-style details inspired by the original Genshin Impact character art.\n"
+        +"- Incorporate subtle blue lighting or water effects around the outfit or background.\n"
+        +"- Preserve the person's facial features and hairstyle as much as possible while blending with the Genshin style.\n"
+        +"\n"
+        +"4. Do not change the background unless necessary, but feel free to enhance it with light water or stage effects for coherence.\n"
+        +"\n"
+        +"Output should be a full-body portrait.\n",
+      "/images/origin2_furina_portrait.png"
+    ],
+    [
+      "/images/origin2.jpg",
+      "You are an advanced AI image generation model. Your task is to transform the provided portrait image of a person by replacing their outfit and accessories with those of the character Raiden Ei from the game Genshin Impact. Follow the instructions carefully:\n"
+      + "\n"
+      + "1. Change the person's clothing to match Raiden Ei's official outfit:\n"
+      + "- A regal, purple-themed outfit with elements of lavender, violet, and dark purple.\n"
+      + "- Elegant and flowing, with a high collar, short sleeves, and a long skirt with layered fabric.\n"
+      + "- Intricate details such as golden trim, lightning motifs, and a stylized lightning bolt on the chest area.\n"
+      + "- A traditional, yet slightly futuristic armor-inspired aesthetic.\n"
+      + "\n"
+      + "2. Include Raiden Ei's signature props:\n"
+      + "- A polearm weapon, the \"Kagura's Verity\" , which is a long, elegantly designed polearm with purple and golden accents.\n"
+      + "- Optional: A subtle aura of electro-energy or lightning effects around her weapon or body to signify her Electro Archon power.\n"
+      + "\n"
+      + "3. Style and aesthetics:\n"
+      + "- Maintain anime-style details inspired by the original Genshin Impact character art.\n"
+      + "- Incorporate purple and electric lighting effects around the outfit or background for coherence with the Electro theme.\n"
+      + "- Preserve the person's facial features and hairstyle as much as possible while blending with the Genshin style.\n"
+      + "\n"
+      + "4. Do not change the background unless necessary, but feel free to enhance it with light electric or lightning effects for a dynamic look.\n"
+      + "\n"
+      + "Output should be a full-body portrait.\n",
+      "/images/origin2_raidenshogun_portrait.webp"
+    ],
+    [
+      "/images/origin2.jpg",
+      "You are an advanced AI image generation model specialized in transforming portrait images into anime-style 3D figurines. The user will provide a photo of a person. Your task is to:\n"
+      + "\n"
+      + "1. Replace the person's outfit with the full official outfit of Furina (Focalors) from Genshin Impact:\n"
+      + "- A noble and theatrical blue-and-white ensemble with silver accents.\n"
+      + "- High collar, puffed sleeves, and a dramatic layered short skirt.\n"
+      + "- Knee-high boots, detailed water-themed accessories, and elegant gloves.\n"
+      + "\n"
+      + "2. Add Furina's signature accessories:\n"
+      + "- A small floating water elemental creature (Gowne) near the shoulder.\n"
+      + "- An ornate staff or theatrical baton, carried or posed nearby.\n"
+      + "- Subtle water effects or energy traces as a visual accent.\n"
+      + "\n"
+      + "3. Transform the entire character into a **full-body 3D figurine**:\n"
+      + "- Plastic or resin-like material finish.\n"
+      + "- Visible base/stand typical of collectible anime figures.\n"
+      + "- Lighting and rendering consistent with high-quality figurine product photos.\n"
+      + "- Keep the pose elegant, with slight drama or flair, as if she's on stage or mid-performance.\n"
+      + "\n"
+      + "4. Preserve the person's facial structure and hairstyle, but adapt them to anime-style proportions and rendering, consistent with Furina's character design.\n"
+      + "\n"
+      + "5. The background should be clean or display a soft studio-style gradient (white, gray, or soft blue), typical of professional figure photography.\n"
+      + "\n"
+      + "6. The final result should resemble a real collectible figurine product image, not a 2D anime illustration or cosplay.\n"
+      + "\n"
+      + "Be precise, elegant, and ensure a perfect blend between the original person's identity and Furina's iconic style.\n",
+      "/images/origin2_furina_figurine.jpg"
+    ],
+    [
+      "/images/origin2.jpg",
+      "You are an advanced AI image generation model specialized in transforming portrait images into anime-style 3D figurines. \n"
+      + "The user will provide a photo of a person. Your task is to:\n"
+      + "\n"
+      + "1. Replace the person's outfit with the full official outfit of Raiden Shogun (Ei) from Genshin Impact:\n"
+      + "  - A regal and traditional Inazuman-inspired kimono-style ensemble.\n"
+      + "   - Deep purple and violet hues with lightning motifs.\n"
+      + "   - Ornate sleeves, layered fabric with sakura and electro designs, and a form-fitting bodice.\n"
+      + "   - Thigh-high stockings, elegant sandals, and ribbon embellishments.\n"
+      + "\n"
+      + "2. Add Raiden Shogun's signature accessories:\n"
+      + "   - The **Engulfing Lightning** polearm, either held in hand or posed behind.\n"
+      + "   - Floating **Electro** sigils or symbols, emitting soft purple lightning effects.\n"
+      + "   - Her signature flower hairpin and electro vision visible on the outfit.\n"
+      + "\n"
+      + "3. Transform the entire character into a **full-body 3D figurine**:\n"
+      + "   - Resin or high-quality PVC finish, resembling real collectible anime figures.\n"
+      + "   - Mounted on a decorated circular stand with electro-themed elements.\n"
+      + "   - Soft studio lighting and professional figurine rendering quality.\n"
+      + "   - Pose should be strong, commanding, and elegant—like she's about to unleash her elemental burst.\n"
+      + "\n"
+      + "4. Preserve the person's facial structure and hairstyle, but adapt them into anime-style with Raiden Shogun's color palette and elegance:\n"
+      + "   - Maintain the character's serious and composed aura.\n"
+      + "   - Hair may be stylized with purples and blended with the original style.\n"
+      + "\n"
+      + "5. The background should be clean and minimal, such as a white or soft lavender gradient backdrop, typical of product photography for figures.\n"
+      + "\n"
+      + "6. The final result must look like a high-end anime **3D collectible figurine**, not a cosplay or 2D illustration.",
+      "/images/origin2_raidenshogun_figurine.jpg"
+    ]
+  ]
 
   // 在客户端初始化时恢复所有保存的状态
   useEffect(() => {
@@ -65,6 +171,15 @@ export default function Home() {
     if (savedUploadImageFileName) setUploadImageFileName(savedUploadImageFileName)
     if (savedPrompt) setPrompt(savedPrompt)
   }, []) // 仅在组件挂载时执行一次
+
+  // 监听session状态变化，当session加载完成时刷新用户创作区域
+  useEffect(() => {
+    console.log("debug status:", status)
+    console.log("debug session:", session)
+    if (status === 'authenticated' && session?.user?.email) {
+      refresh_user_creation_area()
+    }
+  }, [status, session])
 
   // 保存状态到localStorage
   const saveStateToStorage = () => {
@@ -209,6 +324,46 @@ export default function Home() {
   //   }
   // }
 
+  const refresh_user_creation_area = async () => {
+    if (status === 'loading') {
+      return
+    }
+
+    if (status !== 'authenticated' || !session?.user) {
+      return
+    }
+
+    if (!session.user.email) {
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/gen_img/get_creation/${session.user.email}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Response was not JSON')
+      }
+
+      const data = await response.json()
+      const creation_list = data.user_creation || []
+      setUserCreationList(creation_list)
+    } catch (error) {
+      console.error("get user creation failed:", error)
+      setUserCreationList([])
+    }
+  }
+
   const handleSubmit = async () => {
     if (!uploadImageFileName || !prompt) {
       alert('Please upload an image and enter a prompt')
@@ -268,7 +423,8 @@ export default function Home() {
         
         if (data.success) {
           setGeneratedImagePath(data.img_id);
-          // substractCredits(1)
+          refresh_user_creation_area();
+          
         } else if (!data.isAuthenticated) {
           setIsLoginModalOpen(true);
         } else {
@@ -419,14 +575,14 @@ export default function Home() {
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title">prompt templates</h5>
                 <ul className="list-group flex-grow-1" style={{ overflowY: 'auto' }}>
-                  {promptTemplates.map((template, index) => (
+                  {userCaseArr.map((template, index) => (
                     <li 
                       key={index}
                       className="list-group-item prompt-template" 
                       style={{ cursor: 'pointer' }}
-                      onClick={() => setPrompt(template)}
+                      onClick={() => setPrompt(template[1])}
                     >
-                      {template}
+                      {template[1]}
                     </li>
                   ))}
                 </ul>
@@ -489,24 +645,32 @@ export default function Home() {
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">My Creations</h5>
-                <div className="user-cases-container">
-                  <div className="user-case-item">
-                    <div className="row align-items-center">
-                      <div className="col-md-3">
-                        <img src="/images/case1_original.jpg" className="img-fluid rounded" alt="Original Image" />
-                        <p className="text-muted mt-2">Original Image</p>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="prompt-text">
-                          <p>The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere...</p>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <img src="/images/case1_generated.jpg" className="img-fluid rounded" alt="Generated Image" />
-                        <p className="text-muted mt-2">Generated Image</p>
+                <div className="row" style={{ 
+                  maxHeight: '600px', 
+                  overflowY: 'auto',
+                  paddingRight: '10px'
+                }}>
+                  {userCreationList && userCreationList.map((path: string, index: number) => (
+                    <div key={index} className="col-md-4 mb-4">
+                      <div className="creation-item">
+                        <img 
+                          src={`${API_BASE_URL}/gen_img/output/${path}`} 
+                          className="img-fluid rounded" 
+                          alt={`Generated Image ${index + 1}`}
+                          style={{ 
+                            width: '100%', 
+                            height: '300px', 
+                            objectFit: 'cover',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => {
+                            setModalImage(`${API_BASE_URL}/gen_img/output/${path}`);
+                            setShowImageModal(true);
+                          }}
+                        />
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -519,24 +683,72 @@ export default function Home() {
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">User Cases</h5>
-                <div className="user-cases-container">
-                  <div className="user-case-item">
-                    <div className="row align-items-center">
-                      <div className="col-md-3">
-                        <img src="/images/case1_original.jpg" className="img-fluid rounded" alt="Original Image" />
-                        <p className="text-muted mt-2">Original Image</p>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="prompt-text">
-                          <p>The image features a fantastical, ethereal female figure floating gracefully through a celestial, dreamlike atmosphere...</p>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <img src="/images/case1_generated.jpg" className="img-fluid rounded" alt="Generated Image" />
-                        <p className="text-muted mt-2">Generated Image</p>
-                      </div>
-                    </div>
-                  </div>
+                <div style={{ 
+                  maxHeight: '600px', 
+                  overflowY: 'auto',
+                  paddingRight: '10px'
+                }}>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '25%' }}>Original Image</th>
+                        <th style={{ width: '50%' }}>Prompt</th>
+                        <th style={{ width: '25%' }}>Generated Image</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userCaseArr.map((caseItem, index) => (
+                        <tr key={index}>
+                          <td>
+                            <img 
+                              src={caseItem[0]} 
+                              className="img-fluid rounded" 
+                              alt="Original Image"
+                              style={{ 
+                                width: '100%', 
+                                height: '150px', 
+                                objectFit: 'contain',
+                                cursor: 'pointer',
+                                backgroundColor: '#f8f9fa'
+                              }}
+                              onClick={() => {
+                                setModalImage(caseItem[0]);
+                                setShowImageModal(true);
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <div style={{ 
+                              height: '150px', 
+                              overflowY: 'auto',
+                              padding: '10px',
+                              fontSize: '0.9rem'
+                            }}>
+                              {caseItem[1]}
+                            </div>
+                          </td>
+                          <td>
+                            <img 
+                              src={caseItem[2]} 
+                              className="img-fluid rounded" 
+                              alt="Generated Image"
+                              style={{ 
+                                width: '100%', 
+                                height: '150px', 
+                                objectFit: 'contain',
+                                cursor: 'pointer',
+                                backgroundColor: '#f8f9fa'
+                              }}
+                              onClick={() => {
+                                setModalImage(caseItem[2]);
+                                setShowImageModal(true);
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -931,6 +1143,8 @@ export default function Home() {
             </div>
           </div>
         </div>  
+
+        <Footer />
       
       </div>
 

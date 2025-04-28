@@ -1,11 +1,10 @@
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 from database.db_model import db
 from utils.log_util import logger
 
 class UserCredits(db.Model):
-    __tablename__ = 'user_credis'
+    __tablename__ = 'user_credits'
 
     user_id = db.Column(db.String(120), primary_key=True)
     credit_count = db.Column(db.Integer, nullable=False)
@@ -72,10 +71,11 @@ def get_user_credits(request_id, user_id):
             logger.info(f"request_id:{request_id}, user_credits: {user_credits.credit_count}") 
             return user_credits.credit_count
         else:
-            new_user_credits = UserCredits(user_id=user_id, credit_count=0)
+            credit_count = 10
+            new_user_credits = UserCredits(user_id=user_id, credit_count=credit_count)
             db.session.add(new_user_credits)
             db.session.commit()
-            return 0
+            return credit_count
     except Exception as e:
         logger.error(f"request_id:{request_id}, error in get_user_credits: {str(e)}")
         return None

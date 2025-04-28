@@ -17,7 +17,7 @@ import third_party.wechat_pay as wechat_pay
 from utils.log_util import logger
 from utils import random_util
 from utils import qr_util
-from database import payment_state_dao, user_credits_dao
+from database import payment_state_dao, user_credits_dao, user_creation_dao
 from database.db_model import db
 from account import user_account
 
@@ -161,8 +161,12 @@ def process():
                 logger.error(f"request_id:{request_id}, generate image failed")
                 return jsonify(success=False, isAuthenticated=auth, message="generate image failed, try it later")
             
+            logger.info(f"request_id:{request_id}, generate image path:{img_path}")
+
             user_credits_dao.add_user_credits(request_id, user_data['email'], \
                                               -app.config['CONSUME_CREDITS_CNT_PER_GENERATION'])
+
+            user_creation_dao.add_user_creation(request_id, user_data['email'], img_path)
             
             return jsonify(
                 success=True, 
@@ -491,6 +495,27 @@ def substract_credits(user_id, credits_num):
     except Exception as e:
         logger.error(f"substract user credits failed: {str(e)}")
         return jsonify(success=False, message="substract credits exception"), 500
+
+
+@app.route('/gen_img/get_creation/<path:user_id>', methods=['GET'])
+def get_creation(user_id):
+    """
+    获取用户生图的路径
+    """
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got get_creation request, request_id:{request_id}, user_id:{user_id}")
+    try:
+        
+        creation_list = user_creation_dao.get_user_creation(request_id, user_id)
+        if creation_list is None:
+            logger.error("request_id:{request_id}, user creation_list is None")
+            return jsonify(success=False, message="get creation failed", user_creation=None), 500
+        user_creation = [path.split('/')[-1] for path in creation_list]
+        logger.info(f"request_id:{request_id}, user_id:{user_id}, user_creation:{user_creation}")
+        return jsonify(success=True, message="get credits success", user_creation=user_creation), 200
+    except Exception as e:
+        logger.error(f"get user credits failed: {str(e)}")
+        return jsonify(success=False, message="get credits exception", user_creation=None), 500
 
 
 if __name__ == '__main__':

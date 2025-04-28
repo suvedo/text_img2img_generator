@@ -4,6 +4,7 @@ import type { AppProps } from 'next/app'
 import '../styles/style.css'
 import '../styles/payment.css'
 import '../styles/navbar.css'
+import '../styles/Footer.css'
 
 
 export default function App({ 
