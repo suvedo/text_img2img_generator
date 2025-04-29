@@ -208,11 +208,14 @@ export default function Home() {
           body: formData,
         })
 
+        if (!response.ok) {
+          throw new Error(`fetch gen_img/upload status not ok, status is ${response.status}`)
+        }
+
         const data = await response.json()
         
         if (data.success) {
           setUploadImageFileName(data.file_path)
-          // localStorage.setItem('savedUploadImageFileName', data.file_path)
         } else {
           alert('Failed to upload image: ' + data.message)
         }
@@ -220,6 +223,8 @@ export default function Home() {
         console.error('Error uploading image:', error)
         alert('Error uploading image: ' + error)
       }
+    } else {
+      alert('no image to upload')
     }
   }
 

@@ -28,6 +28,10 @@ function startPaymentPolling(userId: string, orderType: string, outTradeNo: stri
                     out_trade_no: outTradeNo
                 })
             });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`)
+            }
             
             const result = await response.json();
             

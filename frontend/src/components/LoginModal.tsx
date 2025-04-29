@@ -42,11 +42,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           setIsSignUp(false)
           setPassword('')
         } else {
-          alert(data.msg)
+          throw new Error(data.msg)
         }
       } catch (error) {
         console.error('signup error:', error)
-        alert('An error occurred during signup')
+        alert(`An error occurred during signup:${error}`)
       }
       
     } else {
