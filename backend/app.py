@@ -79,7 +79,7 @@ def process():
         
     logger.info(f"request_id:{request_id}, user:{session['user']}")
 
-    user_credits_cnt = user_credits_dao.get_user_credits(request_id, user_data['email'])
+    user_credits_cnt = user_credits_dao.get_user_credits(request_id, user_data['email'], app.config['NEW_USER_FREE_CREDITS_COUNT'])
     if not user_credits_cnt \
             or user_credits_cnt < app.config['CONSUME_CREDITS_CNT_PER_GENERATION']:
         logger.error(f"request_id:{request_id}, user:{session['user']}, credits not enough")
@@ -470,7 +470,7 @@ def get_credits(user_id):
     logger.info(f"got get_credits request, request_id:{request_id}, user_id:{user_id}")
     try:
         # 检查数据库连接
-        credits_num = user_credits_dao.get_user_credits(request_id, user_id)
+        credits_num = user_credits_dao.get_user_credits(request_id, user_id, app.config['NEW_USER_FREE_CREDITS_COUNT'])
         if credits_num is None:
             return jsonify(success=False, message="get credits failed"), 500
         return jsonify(success=True, message="get credits success", credits_remain=credits_num), 200

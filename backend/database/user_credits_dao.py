@@ -59,7 +59,7 @@ def add_user_credits(request_id, user_id, credit_num):
 #         logger.error(f"request_id:{request_id}, error in subtract_user_credits: {str(e)}")
 #         return False
 
-def get_user_credits(request_id, user_id):
+def get_user_credits(request_id, user_id, new_user_free_credits):
     """
     获取用户积分
     :param user_id: 用户ID
@@ -71,11 +71,10 @@ def get_user_credits(request_id, user_id):
             logger.info(f"request_id:{request_id}, user_credits: {user_credits.credit_count}") 
             return user_credits.credit_count
         else:
-            credit_count = 10
-            new_user_credits = UserCredits(user_id=user_id, credit_count=credit_count)
+            new_user_credits = UserCredits(user_id=user_id, credit_count=new_user_free_credits)
             db.session.add(new_user_credits)
             db.session.commit()
-            return credit_count
+            return new_user_free_credits
     except Exception as e:
         logger.error(f"request_id:{request_id}, error in get_user_credits: {str(e)}")
         return None
