@@ -75,7 +75,7 @@ SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # 小于KOLORS_OR_GPT_THRES时，使用Kolors Huggingface Space，否则使用GPT
-KOLORS_OR_GPT_THRES = 0.5
+KOLORS_OR_GPT_THRES = 1.1
 
 # Kolors Huggingface Space配置
 KOLORS_HF_UPLOAD_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id
@@ -116,12 +116,24 @@ WECHAT_PAY_NATIVE_DNS = "https://api.mch.weixin.qq.com"
 WECHAT_PAY_NATIVE_PATH = "/v3/pay/transactions/native"
 WECHAT_PAY_APPID = "wxd89feb871d5d61fd" # 公众账号ID
 WECHAT_PAY_MCHID = "1713859721" # 商户号
-WECHAT_PAY_DISCRIPTION = "Image-Factory-Discription" # 商品描述
+WECHAT_PAY_DISCRIPTION = "Image Creation" # 商品描述
 WECHAT_PAY_NOTIFY_URL = "http://"+IP+":8000/wechat_pay_callback" #"https://www.weixin.qq.com/wxpay/pay.php"
-WECHAT_PAY_AMOUNT = "1-CNY"  # 金额单位为：分
+# WECHAT_PAY_AMOUNT = "1-CNY"  # 金额单位为：分
 WECHAT_PAY_PEM_PATH = "third_party/apiclient_key.pem"  # 商户私钥文件路径
 WECHAT_PAY_API_PW = "FfVhDnkT58vfCFH1nLvQ2jJxbvAM6jdf" # 商户APIv3密钥
 WECHAT_PAY_API_SERIAL_NO = "5BC778FEBC348BB92F28D1CB0EA61E1B46D85E8D"  # 商户API证书序列号
 WECHAT_PAY_PLATFORM_PEM_PATH = "third_party/wechatpay.pem"  # 平台证书路径
 WECHAT_PAY_SERIAL_NO = "73549CB41CF2F2933DD2224EF6C2592868BE5F92"  # 平台证书序列号
 WECHAT_PAY_PLATFORM_PUBLIC_KEY_PATH = "./third_party/wxp_pub.pem"  # 平台证书公钥路径
+
+# 支付积分配置
+PAY_TYPE2_CREDIT_NUM_DICT = {
+    "1": 10,
+    "2": 30,
+    "3": 50,
+    "4": 100,
+}
+# 每次生成图片消耗1个credit
+CONSUME_CREDITS_CNT_PER_GENERATION = 1
+# 用户注册后有10个免费credit
+NEW_USER_FREE_CREDITS_COUNT = 10

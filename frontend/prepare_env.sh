@@ -7,7 +7,7 @@ nvm use 18
 node -v  # 应输出 v18.x.x 或更高
 
 # 删除旧依赖和锁文件
-rm -rf node_modules package-lock.json
+rm -rf node_modules .next
 
 # 重新安装（确保网络通畅）
 npm install --force

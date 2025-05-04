@@ -1,5 +1,8 @@
 #!/bin/bash
 
+RESULT=$(netstat -tulnp | grep :3000 | awk '{print $7}' | cut -d'/' -f1)
+kill -9 $RESULT
+
 # 检查 PID 文件是否存在
 if [ ! -f "./tmp/next.pid" ]; then
     echo " PID file not found, service seems not to be running."

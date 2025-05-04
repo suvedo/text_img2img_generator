@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 import LoginModal from './LoginModal'
+import { API_BASE_URL } from '../config'
+import { number } from 'motion'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -10,6 +12,33 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+
+  const [creditsRemain, setCreditsRemain] = useState<number | undefined>(undefined)
+
+  // const handleDropdown = () => {
+    
+  //   if (isDropdownOpen) {
+  //     fetch(`${API_BASE_URL}/gen_img/get_credits/${session?.user.email}`, {
+  //           method: 'GET',
+  //           headers: {
+  //             'Accept': 'application/json',
+  //           }
+  //         }).then((response) => {
+  //           if (response.ok) {
+  //             return response.json()
+  //           } else {
+  //             throw new Error('Network response was not ok')
+  //           };
+  //         }).then((data) => {
+  //           setCreditsRemain(data.credits_remain)
+  //         }).catch((error) => {
+  //           setCreditsRemain(undefined)
+  //           console.error(error);
+  //         });
+  //       }
+
+  //   setIsDropdownOpen(!isDropdownOpen)
+  // }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,14 +48,39 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    if (isDropdownOpen) {
+      fetch(`${API_BASE_URL}/gen_img/get_credits/${session?.user.email}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then((response) => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Network response was not ok')
+        };
+      }).then((data) => {
+        setCreditsRemain(data.credits_remain)
+      }).catch((error) => {
+        setCreditsRemain(undefined)
+        console.error(error);
+      });
+    }
+  }, [isDropdownOpen])
+
   return (
     <nav className={`navbar navbar-expand-lg navbar-light ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container-fluid">
         <div className="d-flex align-items-center">
           <Link href="/" className="navbar-brand">Home</Link>
           <Link href="#promptTemplates" className="nav-link">Prompt Templates</Link>
+          <Link href="#myCreations" className="nav-link">My Creations</Link>
           <Link href="#userCases" className="nav-link">User Cases</Link>
-          <button className="nav-link" id="pricingButton">Pricing</button>
+          <Link href="#pricingAera" className="nav-link">Pricing</Link>
+
+          {/* <button className="nav-link" id="pricingButton">Pricing</button> */}
         </div>
         <div className="d-flex align-items-center">
           {session ? (
@@ -39,6 +93,9 @@ export default function Navbar() {
                 {session.user.email}
               </button>
               <ul className={`dropdown-menu dropdown-menu-end ${isDropdownOpen ? 'show' : ''}`}>
+                <li>
+                  <p className="dropdown-item"><b>{creditsRemain}</b> credits</p>
+                </li>
                 <li>
                   <button className="dropdown-item" onClick={() => signOut()}>Log out</button>
                 </li>

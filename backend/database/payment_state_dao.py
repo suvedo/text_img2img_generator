@@ -1,10 +1,18 @@
-from utils.log_util import logger
-import threading
-import traceback
+from database.db_model import db
+from datetime import datetime
 
-# 创建读写锁
-_rw_lock = threading.RLock()
-payment_state_dict = {}
+from utils.log_util import logger
+from database.user_credits_dao import UserCredits
+
+class UserPayment(db.Model):
+    __tablename__ = 'user_payment'
+
+    order_no = db.Column(db.String(120), primary_key=True)
+    user_id = db.Column(db.String(120), nullable=False)
+    order_type = db.Column(db.String(16), nullable=False)
+    out_trade_no = db.Column(db.String(120), nullable=False)
+    pay_state = db.Column(db.String(64))
+    created_time = db.Column(db.DateTime, default=datetime.utcnow)  # 自动记录创建时间
 
 def format_order_no(user_id, order_type, out_trade_no):
     """
@@ -25,6 +33,7 @@ def success_paid(state):
     """
     return state == "SUCCESS_PAIED"
 
+
 def gen_paied_state(success):
     """
     生成支付状态
@@ -32,6 +41,7 @@ def gen_paied_state(success):
     :return: 支付状态
     """
     return "SUCCESS_PAIED" if success else "FAILED_PAIED"
+
 
 def get_payment_state(request_id, user_id, order_type, out_trade_no):
     """
@@ -41,33 +51,60 @@ def get_payment_state(request_id, user_id, order_type, out_trade_no):
     :return: 支付状态
     """
     try:
-        with _rw_lock:  # 获取读锁
-            order_no = format_order_no(user_id, order_type, out_trade_no)
-            if order_no in payment_state_dict:
-                state = payment_state_dict[order_no]
-                logger.info(f"request_id:{request_id}, get payment state for order_no:{order_no}, state:{state}")
-                return state
-            else:
-                # logger.info(f"request_id:{request_id}, order_no:{order_no} not found")
-                return None
+        order_no = format_order_no(user_id, order_type, out_trade_no)
+        payment = UserPayment.query.filter_by(order_no=order_no).first()
+        if not payment:
+            return None
+        state = payment.pay_state
+        logger.info(f"request_id:{request_id}, get payment state for order_no:{order_no}, state:{state}")
+        return state
     except Exception as e:
-        logger.error(f"request_id:{request_id}, error in get_payment_state: {traceback.format_exc()}")
+        logger.error(f"request_id:{request_id}, error in get_payment_state: {str(e)}")
         return None
-    
-def set_payment_state(request_id, user_id, order_type, out_trade_no, state):
+
+
+def set_payment_state(request_id, user_id, order_type, out_trade_no, state, credit_add_num):
     """
     设置支付状态
     :param request_id: 请求ID
     :param order_no: 订单号
-    :param state: 支付状态
+    :param state: 支付状态, 已转换为字符串
     """
     try:
-        with _rw_lock:  # 获取写锁
-            order_no = format_order_no(user_id, order_type, out_trade_no)
-            payment_state_dict[order_no] = state
-            logger.info(f"request_id:{request_id}, set payment state for order_no:{order_no}, state:{state}")
+        order_no = format_order_no(user_id, order_type, out_trade_no)
+        # 先查询是否存在
+        payment = UserPayment.query.filter_by(order_no=order_no).first()
+        
+        if payment:
+            # 如果存在，更新状态
+            payment.pay_state = state
+        else:
+            # 如果不存在，创建新记录
+            payment = UserPayment(
+                order_no=order_no,
+                user_id=user_id,
+                order_type=order_type,
+                out_trade_no=out_trade_no,
+                pay_state=state
+            )
+            db.session.add(payment)
+        
+        if success_paid(state):
+            user_credits = UserCredits.query.filter_by(user_id=user_id).first()
+            if user_credits:
+                user_credits.credit_count += credit_add_num
+            else:
+                user_credits = UserCredits(user_id=user_id, credit_count=credit_add_num)
+                db.session.add(user_credits)
+        
+        db.session.commit()
+        logger.info(f"request_id:{request_id}, finish setting payment state for order_no:{order_no}, state:{state}, credit_add_num:{credit_add_num}")
+        
+        return True
     except Exception as e:
-        logger.error(f"request_id:{request_id}, error in set_payment_state: {traceback.format_exc()}")
+        db.session.rollback()
+        logger.error(f"request_id:{request_id}, error in set_payment_state: {str(e)}")
+        return False
 
 
 def remove_payment_state(request_id, user_id, order_type, out_trade_no):
@@ -77,10 +114,12 @@ def remove_payment_state(request_id, user_id, order_type, out_trade_no):
     :param order_no: 订单号
     """
     try:
-        with _rw_lock:  # 获取写锁
-            order_no = format_order_no(user_id, order_type, out_trade_no)
-            if order_no in payment_state_dict:
-                del payment_state_dict[order_no]
-                logger.info(f"request_id:{request_id}, removed payment state for order_no:{order_no}")
+        order_no = format_order_no(user_id, order_type, out_trade_no)
+        payment = UserPayment.query.filter_by(order_no=order_no).first()
+        if payment:
+            db.session.delete(payment)
+            db.session.commit()
+            logger.info(f"request_id:{request_id}, remove payment state for order_no:{order_no}")
     except Exception as e:
-        logger.error(f"request_id:{request_id}, error in remove_payment_state: {traceback.format_exc()}")
+        db.session.rollback()
+        logger.error(f"request_id:{request_id}, error in remove_payment_state: {str(e)}")

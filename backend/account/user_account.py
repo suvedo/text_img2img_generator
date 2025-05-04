@@ -2,6 +2,7 @@ from flask import jsonify
 import re
 
 from database.user_dao import User, db
+from database import user_credits_dao
 from utils.log_util import logger
 
 
@@ -25,6 +26,11 @@ def is_valid_password(password):
 def check_auth(request_id, session):
     return 'user' in session and 'email' in session['user']
 
+def get_email_in_session(session):
+    if 'user' not in session or 'email' not in session['user']:
+        return None
+    return session['user']['email']
+
 def login(request_id, data, session):
     email = data.get('email')
     password = data.get('password')
@@ -35,9 +41,13 @@ def login(request_id, data, session):
 
     user = User.query.filter_by(email=email).first()
     if user and user.check_password(password):
-        session['user_id'] = user.id
-        session['username'] = user.email
-        session['email'] = user.email
+        # session['user'] = {
+        #     'email': user.email,
+        #     'id': user.email,
+        #     'name': user.email
+        # }
+        # session['username'] = user.email
+        # session['email'] = user.email
         logger.info(f"request_id:{request_id}, email:{email}, password:{password}, login successful")
         return jsonify(ok=True, msg='login successful')
     
@@ -57,7 +67,7 @@ def logout(request_id, session):
         return jsonify(ok=False, msg='user not logged in')
 
 
-def signup(request_id, data, session):
+def signup(request_id, data, session, new_user_credits):
     email = data.get('email')
     password = data.get('password')
 
@@ -86,6 +96,10 @@ def signup(request_id, data, session):
         user.set_password(password)
         user.set_email(email)
         db.session.add(user)
+
+        credit = user_credits_dao.UserCredits(user_id=email, credit_count=new_user_credits)
+        db.session.add(credit)
+
         db.session.commit()
         return jsonify(ok=True, msg="sign up successful")
     except Exception as e:

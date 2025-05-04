@@ -9,6 +9,8 @@ import {
   } from 'next-auth'
 import { AdapterUser } from '@auth/core/adapters'
 import { JWT } from 'next-auth/jwt'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import { API_BASE_URL } from '../../../config'
 
 // 扩展 Session 类型
 declare module 'next-auth' {
@@ -22,6 +24,48 @@ declare module 'next-auth' {
 
 export const authOptions: AuthOptions = {
   providers: [
+    CredentialsProvider({
+      id: 'credentials',
+      name: 'Credentials',
+      credentials: {
+        email: { label: "邮箱", type: "email" },
+        password: { label: "密码", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('no email or password')
+        }
+
+        try {
+          // 调用原来的Flask后端登录API
+          const res = await fetch(`${API_BASE_URL}/gen_img/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: credentials?.email,
+              password: credentials?.password,
+            }),
+          })
+
+          const data = await res.json()
+
+          if (data.ok) {
+            // 返回用户信息给NextAuth.js
+            return {
+              id: credentials?.email,
+              email: credentials?.email,
+              name: credentials?.email,
+            }
+          }
+          
+          throw new Error(data.msg)
+        } catch (error: any) {
+          throw new Error(error?.message || 'login failed, try it later')
+        }
+      }
+    }),
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
@@ -61,6 +105,7 @@ export const authOptions: AuthOptions = {
         if (account) {
           token.accessToken = account.access_token
           token.providerId = account.provider
+          token.id = account.id
         }
         return token
     },
