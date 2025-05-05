@@ -258,16 +258,16 @@ export default function Home() {
     // }
     if (payType === 1) {
       setIsGettingPricingQrCodeURL(true);
-      amount = 79;
+      amount = 790;
     } else if (payType === 2) {
       setIsGettingPricingQrCodeURL2(true);
-      amount = 219;
+      amount = 2190;
     } else if (payType === 3) {
       setIsGettingPricingQrCodeURL3(true);
-      amount = 339;
+      amount = 3390;
     } else if (payType === 4) {
       setIsGettingPricingQrCodeURL4(true);
-      amount = 559;
+      amount = 5590;
     }
     
     try {
