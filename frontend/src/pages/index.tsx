@@ -456,7 +456,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Image Factory</title>
+        <title>Pixel Myth</title>
       </Head>
       <Navbar />
       <LoginModal 
@@ -480,7 +480,7 @@ export default function Home() {
           <div className="welcome-message">
             <div className="text-center p-4 rounded-lg animate__animated animate__fadeIn">
               <AuroraText>
-                <span className="welcome-title">Welcome to Image Factory!</span>
+                <span className="welcome-title">Dress Up Your Photos As Game Characters</span>
               </AuroraText>
               <TextRevealSimple className="welcome-text mt-4">
                 Upload your image and generate your own masterpiece with custom prompts. 
@@ -795,7 +795,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -804,7 +804,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -813,7 +813,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -822,7 +822,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -831,7 +831,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                     className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -840,7 +840,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -849,7 +849,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -889,7 +889,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -898,7 +898,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -907,7 +907,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -916,7 +916,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -925,7 +925,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                     className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -934,7 +934,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -943,7 +943,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -983,7 +983,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -992,7 +992,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -1001,7 +1001,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -1010,7 +1010,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -1019,7 +1019,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                     className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -1028,7 +1028,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -1037,7 +1037,7 @@ export default function Home() {
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
@@ -1077,7 +1077,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
@@ -1086,7 +1086,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
@@ -1095,7 +1095,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
@@ -1104,7 +1104,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
@@ -1113,7 +1113,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                   viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                   className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
@@ -1122,7 +1122,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
@@ -1131,7 +1131,7 @@ export default function Home() {
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                       viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
