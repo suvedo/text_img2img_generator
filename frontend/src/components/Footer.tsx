@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
         <div className="row">
           <div className="col-md-4">
             <h5>About Us</h5>
-            <p className="text-muted">
+            <p className="">
               We are committed to providing the highest quality AI image generation services, making creativity limitless.
             </p>
           </div>
@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
             <h5>Follow Us</h5>
             <div className="social-links">
               <a href="#" className="me-2"><i className="fab fa-weixin"></i></a>
-              <a href="#" className="me-2"><i className="fab fa-weibo"></i></a>
+              <a href="#" className="me-2"><i className="fab fa-facebook"></i></a>
               <a href="#" className="me-2"><i className="fab fa-github"></i></a>
             </div>
           </div>
@@ -32,8 +32,8 @@ const Footer: React.FC = () => {
         <hr />
         <div className="row">
           <div className="col-12 text-center">
-            <p className="text-muted mb-0">
-              © {new Date().getFullYear()} Image Factory. All rights reserved.
+            <p className="mb-0">
+              © {new Date().getFullYear()} pixelmyth.shop. All rights reserved.
             </p>
           </div>
         </div>

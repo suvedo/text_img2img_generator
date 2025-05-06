@@ -75,18 +75,39 @@ export default function Navbar() {
     }
   }, [isDropdownOpen])
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      const offset = 100; // 向上偏移的像素值,可以根据需要调整
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  };
+
   return (
     <nav className={`navbar navbar-expand-lg navbar-light ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container-fluid">
-        <div className="d-flex align-items-center">
-          <Link href="/" className="navbar-brand">Home</Link>
-          <Link href="#promptTemplates" className="nav-link">Prompt Templates</Link>
-          <Link href="#myCreations" className="nav-link">My Creations</Link>
-          <Link href="#userCases" className="nav-link">User Cases</Link>
-          <Link href="#pricingAera" className="nav-link">Pricing</Link>
-
-          {/* <button className="nav-link" id="pricingButton">Pricing</button> */}
-        </div>
+      <div className="d-flex align-items-center">
+        <Link href="/" className="navbar-brand">Home</Link>
+        <a href="#promptTemplates" className="nav-link" onClick={(e) => handleNavClick(e, 'promptTemplates')}>
+          Prompt Templates
+        </a>
+        <a href="#myCreations" className="nav-link" onClick={(e) => handleNavClick(e, 'myCreations')}>
+          My Creations
+        </a>
+        <a href="#userCases" className="nav-link" onClick={(e) => handleNavClick(e, 'userCases')}>
+          User Cases
+        </a>
+        <a href="#pricingAera" className="nav-link" onClick={(e) => handleNavClick(e, 'pricingAera')}>
+          Pricing
+        </a>
+      </div>
         <div className="d-flex align-items-center">
           {session ? (
             <div className="dropdown">

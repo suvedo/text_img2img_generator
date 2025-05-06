@@ -288,7 +288,17 @@ export default function Home() {
   });
 
   const scrollToUserCases = () => {
-    document.getElementById('userCases')?.scrollIntoView({ behavior: 'smooth' });
+    const element = document.getElementById('userCases');
+    if (element) {
+      const offset = 100; // 向上偏移的像素值,可以根据需要调整
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
   };
 
   // 在客户端初始化时恢复所有保存的状态
@@ -615,8 +625,9 @@ export default function Home() {
                 <span className="welcome-title">Dress Up Your Photos As Game Characters</span>
               </AuroraText>
               <TextRevealSimple className="welcome-text mt-4">
-                Upload your image and generate your own masterpiece with custom prompts. 
-                Explore endless possibilities until you find your perfect creation.
+              <b>Turn your photo into iconic game characters with AI while keeping facial features.<br/> 
+              Choose from built-in prompt templates inspired by King of Glory and Genshin Impact.<br/>
+              New characters added regularly—explore endless creative possibilities!</b>
               </TextRevealSimple>
             </div>
           </div>
@@ -627,7 +638,7 @@ export default function Home() {
           <div className="col-md-3">
             <div className="card h-100">
               <div className="card-body d-flex flex-column">
-                <h5 className="card-title">Upload your image</h5>
+                {/* <h5 className="card-title">Upload your photo</h5> */}
                 <div className="preview-area mt-3 flex-grow-1" id="preview">
                   <input
                     type="file"
@@ -639,7 +650,7 @@ export default function Home() {
                   <div className={`upload-container text-center ${uploadImageFileName? 'd-none' : ''}`} id="uploadContainer">
                     <label htmlFor="imageUpload" className="upload-label">
                       <i className="fas fa-cloud-upload-alt"></i>
-                      <span>click to upload</span>
+                      <span>upload your photo</span>
                     </label>
                   </div>
                   <div className={`image-preview-container ${uploadImageFileName? '' : 'd-none'}`} id="imagePreviewContainer">
@@ -677,16 +688,17 @@ export default function Home() {
           <div className="col-md-9">
             <div className="card h-100">
               <div className="card-body d-flex flex-column">
-                <h5 className="card-title">input your prompt</h5>
+                {/* <h5 className="card-title">input your prompt</h5> */}
                 <textarea
                   id="textInput"
                   className="form-control flex-grow-1 mb-3"
                   style={{ resize: 'none' }}
                   value={prompt}
                   onChange={updatePrompt}
+                  placeholder="Choose from our preset prompt templates below or craft your own unique prompt"
                 />
                 <button 
-                  className="btn btn-primary btn-lg"
+                  className="btn btn-primary"
                   onClick={handleSubmit}
                   disabled={isGenerating}
                 >
@@ -717,28 +729,34 @@ export default function Home() {
                   paddingRight: '10px'
                 }}>
                   <table className="table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: '30%' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}>
-                            <span>Character(Game)</span>
-                            <select
-                              className="form-select"
-                              style={{ width: 270, minWidth: 270, fontSize: '0.95em', padding: '2px 8px' }}
-                              value={characterGameFilter}
-                              onChange={e => setCharacterGameFilter(e.target.value)}
-                            >
-                              <option value="All">All</option>
-                              {characterGameOptions.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </th>
-                        <th style={{ width: '40%' }}>Prompt</th>
-                        <th style={{ width: '20%' }}>Operation</th>
-                      </tr>
-                    </thead>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '20%', textAlign: 'center' }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.5rem', 
+                          whiteSpace: 'nowrap',
+                          justifyContent: 'center' 
+                        }}>
+                          <span>Character(Game)</span>
+                          <select
+                            className="form-select"
+                            style={{ width: 120, minWidth: 120, fontSize: '0.95em', padding: '2px 8px' }}
+                            value={characterGameFilter}
+                            onChange={e => setCharacterGameFilter(e.target.value)}
+                          >
+                            <option value="All">All</option>
+                            {characterGameOptions.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </th>
+                      <th style={{ width: '60%', textAlign: 'center' }}>Prompt</th>
+                      <th style={{ width: '20%', textAlign: 'center' }}>Operation</th>
+                    </tr>
+                  </thead>
                     <tbody>
                       {filteredPromptList.map((promptItem, index) => (
                         <tr key={index}>
@@ -770,7 +788,7 @@ export default function Home() {
                             <div className="d-flex flex-column gap-2">
                               <button 
                                 className="btn btn-primary mb-2"
-                                onClick={() => setPrompt(promptItem["prompt_content"])}
+                                onClick={() => setPrompt(prompt + '\n' + promptItem["prompt_content"])}
                               >
                                 Use Prompt
                               </button>
@@ -781,7 +799,7 @@ export default function Home() {
                                   scrollToUserCases();
                                 }}
                               >
-                                VIEW CASE
+                                VIEW CASES
                               </button>
                             </div>
                           </td>
@@ -842,7 +860,7 @@ export default function Home() {
                                     onClick={handleDownload}
                                   >
                                     <i className="fas fa-download me-2"></i>
-                                    Download Image
+                                    Download High-quality Image
                                   </button>
                                 </div>
                               </div>
@@ -917,10 +935,10 @@ export default function Home() {
                   <table className="table">
                     <thead>
                       <tr>
-                        <th style={{ width: '15%' }}>Character(Game)</th>
-                        <th style={{ width: '55%' }}>Prompt</th>
-                        <th style={{ width: '15%' }}>Original Image</th>
-                        <th style={{ width: '15%' }}>Generated Image</th>
+                        <th style={{ width: '12%', textAlign: 'center' }}>Character(Game)</th>
+                        <th style={{ width: '58%', textAlign: 'center' }}>Prompt</th>
+                        <th style={{ width: '15%', textAlign: 'center' }}>Original Image</th>
+                        <th style={{ width: '15%', textAlign: 'center' }}>Generated Image</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1018,6 +1036,7 @@ export default function Home() {
                               <div>
                                   <span className="price-amount">￥7.9</span>
                                   <span className="price-times">[10 times]</span>
+                                  {/* <span style={{ color: '#888', marginLeft: 4 }}>(10 times)</span> */}
                               </div>
                               <button 
                                   className="purchase-button"
@@ -1059,7 +1078,7 @@ export default function Home() {
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
-                                    <span><b>built in prompts</b></span>
+                                    <span><b>prompt templates</b></span>
                                 </div>
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
@@ -1153,7 +1172,7 @@ export default function Home() {
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
-                                    <span><b>built in prompts</b></span>
+                                    <span><b>prompt templates</b></span>
                                 </div>
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
@@ -1247,7 +1266,16 @@ export default function Home() {
                                         className="lucide lucide-check h-5 w-5 text-primary">
                                       <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
-                                    <span><b>built in prompts</b></span>
+                                    <span><b>prompt templates</b></span>
+                                </div>
+                                <div className="feature-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                                        className="lucide lucide-check h-5 w-5 text-primary">
+                                      <path d="M20 6 9 17l-5-5"></path>
+                                    </svg>
+                                    <span><b>high availability model</b></span>
                                 </div>
                                 <div className="feature-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
@@ -1341,7 +1369,16 @@ export default function Home() {
                                       className="lucide lucide-check h-5 w-5 text-primary">
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
-                                  <span><b>built in prompts</b></span>
+                                  <span><b>prompt templates</b></span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span><b>high availability model</b></span>
                               </div>
                               <div className="feature-item">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
@@ -1378,6 +1415,15 @@ export default function Home() {
                                     <path d="M20 6 9 17l-5-5"></path>
                                   </svg>
                                   <span>commercial usage rights</span>
+                              </div>
+                              <div className="feature-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                                      className="lucide lucide-check h-5 w-5 text-primary">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                  </svg>
+                                  <span><b>build-in prompt optimization</b></span>
                               </div>
                             </div>
                           </div>
