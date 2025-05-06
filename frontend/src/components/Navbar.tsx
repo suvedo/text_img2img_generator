@@ -15,6 +15,8 @@ export default function Navbar() {
 
   const [creditsRemain, setCreditsRemain] = useState<number | undefined>(undefined)
 
+  const [isLoadingCredits, setIsLoadingCredits] = useState(false)
+
   // const handleDropdown = () => {
     
   //   if (isDropdownOpen) {
@@ -50,6 +52,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (isDropdownOpen) {
+      setIsLoadingCredits(true);
       fetch(`${API_BASE_URL}/gen_img/get_credits/${session?.user.email}`, {
         method: 'GET',
         headers: {
@@ -66,6 +69,8 @@ export default function Navbar() {
       }).catch((error) => {
         setCreditsRemain(undefined)
         console.error(error);
+      }).finally(() => {
+        setIsLoadingCredits(false);
       });
     }
   }, [isDropdownOpen])
@@ -94,7 +99,18 @@ export default function Navbar() {
               </button>
               <ul className={`dropdown-menu dropdown-menu-end ${isDropdownOpen ? 'show' : ''}`}>
                 <li>
-                  <p className="dropdown-item"><b>{creditsRemain}</b> credits</p>
+                  <div className="dropdown-item">
+                    {isLoadingCredits ? (
+                      <div className="d-flex align-items-center">
+                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <span>loading credits...</span>
+                      </div>
+                    ) : (
+                      <p><b>{creditsRemain}</b> credits</p>
+                    )}
+                  </div>
                 </li>
                 <li>
                   <button className="dropdown-item" onClick={() => signOut()}>Log out</button>

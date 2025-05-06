@@ -588,6 +588,7 @@ export default function Home() {
     <>
       <Head>
         <title>Pixel Myth</title>
+        <link rel="icon" href="/images/logo.png" type="image/png" />
       </Head>
       <Navbar />
       <LoginModal 
