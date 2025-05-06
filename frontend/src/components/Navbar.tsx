@@ -129,7 +129,7 @@ export default function Navbar() {
                         <span>loading credits...</span>
                       </div>
                     ) : (
-                      <p><b>{creditsRemain}</b> credits</p>
+                      <span><b>{creditsRemain}</b> credits</span>
                     )}
                   </div>
                 </li>
