@@ -393,7 +393,7 @@ def signup():
 
 
 @app.route("/gen_img/oauth_callback", methods=["POST"])
-async def oauth_callback():
+def oauth_callback():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got oauth_callback request, request_id:{request_id}")
     # 处理OAuth用户数据
