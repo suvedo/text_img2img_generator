@@ -346,8 +346,8 @@ def query_payment_status():
         order_type = data.get('order_type')
         out_trade_no = data.get('out_trade_no')
         
-        # logger.info(f"request_id:{request_id}, got payment status request, " \
-        #             f"user_id:{user_id}, order_type:{order_type}, out_trade_no:{out_trade_no}")
+        logger.info(f"request_id:{request_id}, got payment status request, " \
+                    f"user_id:{user_id}, order_type:{order_type}, out_trade_no:{out_trade_no}")
         
         st = payment_state_dao.get_payment_state(request_id, user_id, order_type, out_trade_no)
         if st is None:

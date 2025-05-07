@@ -24,7 +24,7 @@ export default function Home() {
   // 微信支付模态框是否打开
   const [isWechatPayModalOpen, setIsWechatPayModalOpen] = useState(false)
   // 微信支付二维码url
-  const [qrCodeUrl, setQrCodeUrl] = useState<string | undefined>(undefined)
+  const [qrCodeUrl, setQrCodeUrl] = useState<string[] | null>(null)
   // 支付金额
   const [payAmount, setPayAmount] = useState(0)
   // 是否正在获取支付二维码
@@ -399,7 +399,7 @@ export default function Home() {
     // }
     if (payType === 1) {
       setIsGettingPricingQrCodeURL(true);
-      amount = 790;
+      amount = 1;
     } else if (payType === 2) {
       setIsGettingPricingQrCodeURL2(true);
       amount = 2190;
@@ -412,13 +412,17 @@ export default function Home() {
     }
     
     try {
-      const qrUrl = await getQrCodeUrl(session.user.email, amount, payType);
-      if (qrUrl !== "") {
-          setQrCodeUrl(qrUrl)
-          setPayAmount(amount)
-          setIsWechatPayModalOpen(true)
-      } else {
-        alert("get wechat pay qr failed")
+      const ret = await getQrCodeUrl(session.user.email, amount, payType);
+      if (ret !== null) {
+        // const qrUrl = ret[0];
+        // const userId = ret[1];
+        // const orderType = ret[2];
+        // const outTradeNo = ret[3];
+        setQrCodeUrl(ret)
+        setPayAmount(amount)
+        setIsWechatPayModalOpen(true)
+      // } else {
+      //   alert("get wechat pay qr failed")
       }
     } catch (error) {
       alert("get wechat pay qr error")
@@ -610,7 +614,7 @@ export default function Home() {
         onClose={() => {
           setIsWechatPayModalOpen(false)
           setPayAmount(0)
-          setQrCodeUrl(undefined)
+          setQrCodeUrl(null)
         }}
         payAmount={payAmount}
         qrUrl={qrCodeUrl}
@@ -788,7 +792,13 @@ export default function Home() {
                             <div className="d-flex flex-column gap-2">
                               <button 
                                 className="btn btn-primary mb-2"
-                                onClick={() => setPrompt(prompt + '\n' + promptItem["prompt_content"])}
+                                onClick={() => {
+                                  if (prompt) {
+                                    setPrompt(prompt + '\n' + promptItem["prompt_content"])
+                                  } else {
+                                    setPrompt(promptItem["prompt_content"]) 
+                                  }
+                                }}
                               >
                                 Use Prompt
                               </button>

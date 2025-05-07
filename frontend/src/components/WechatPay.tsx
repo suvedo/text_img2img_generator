@@ -4,76 +4,79 @@ import { Toast } from 'bootstrap'
 import { useSession } from 'next-auth/react'
 
 import { API_BASE_URL } from '../config'
+import { on } from 'events'
 
 declare const bootstrap: {
   Toast: typeof Toast;
 };
 
+const expire_time_seconds = 15 * 60; // 二维码过期时间，转换为秒
 
-function startPaymentPolling(userId: string, orderType: string, outTradeNo: string) {
-    let pollCount = 0;
-    const maxPollCount = 905; // 最多轮询905次，略多于15分钟
-    const pollInterval = 1000; // 每1秒轮询一次
+// function startPaymentPolling(userId: string, orderType: string, outTradeNo: string) {
+//     const maxPollCount = expire_time_seconds + 1; // 轮询次数
+//     const pollInterval = 1000; // 每1秒轮询一次
     
-    const poll = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/gen_img/query_payment_status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    order_type: orderType,
-                    out_trade_no: outTradeNo
-                })
-            });
+//     let pollCount = 0; //maxPollCount;
 
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`)
-            }
+//     const poll = async () => {
+//         try {
+//             const response = await fetch(`${API_BASE_URL}/gen_img/query_payment_status`, {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                     user_id: userId,
+//                     order_type: orderType,
+//                     out_trade_no: outTradeNo
+//                 })
+//             });
+
+//             if (!response.ok) {
+//               throw new Error(`HTTP error! status: ${response.status}`)
+//             }
             
-            const result = await response.json();
+//             const result = await response.json();
             
-            if (result.success) {
-                if (result.paid) {
-                    alert('payment success, page will refresh in 3 seconds...');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 3000);
-                    return;
-                } else {
-                    alert('payment failed, page will refresh in 3 seconds...');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 3000);
-                    return;
-                }
-            }
+//             if (result.success) {
+//                 if (result.paid) {
+//                     alert('payment success, page will refresh in 1 second...');
+//                     setTimeout(() => {
+//                         window.location.reload();
+//                     }, 1000);
+//                     return;
+//                 } else {
+//                     alert('payment failed, page will refresh in 1 second...');
+//                     setTimeout(() => {
+//                         window.location.reload();
+//                     }, 1000);
+//                     return;
+//                 }
+//             }
             
-            // 继续轮询
-            pollCount++;
-            if (pollCount < maxPollCount) {
-                setTimeout(poll, pollInterval);
-            } else {
-                console.log('payment timeout');
-                alert('payment timeout, page will refresh in 3 seconds...');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-                return;
-            }
-        } catch (error) {
-            console.error('轮询出错:', error);
-            alert('get payment result error');
-        }
-    };
+//             // 继续轮询
+//             pollCount++;
+//             if (pollCount < maxPollCount) {
+//                 setTimeout(poll, pollInterval);
+//             } else {
+//                 // console.log('payment timeout');
+//                 // alert('payment timeout, page will refresh in 1 second...');
+//                 // setTimeout(() => {
+//                 //     window.location.reload();
+//                 // }, 1000);
+//                 return;
+//             }
+//         } catch (error) {
+//             console.error('轮询出错:', error);
+//             alert('get payment result error');
+//         }
+//     };
     
-    // 开始轮询
-    poll();
-}
+//     // 开始轮询
+//     poll();
+// }
 
-export async function  getQrCodeUrl(email: string, payAmount: number, payType: number): Promise<string> {
+export async function  getQrCodeUrl(email: string, payAmount: number, payType: number): Promise<string[] | null> {
     try {
         console.log("Fetching QR code for amount:", payAmount);
         const formData = new FormData();
@@ -95,7 +98,7 @@ export async function  getQrCodeUrl(email: string, payAmount: number, payType: n
             const errorText = response.text();
             console.error("Error response:", errorText);
             alert(`Failed to load wechat pay QR code. Status: ${response.status}, Error: ${errorText}`);
-            return "";
+            return null;
         }
         
         const blob = await response.blob();
@@ -108,18 +111,19 @@ export async function  getQrCodeUrl(email: string, payAmount: number, payType: n
         console.log("Response headers:", { userId, orderType, outTradeNo });
 
         if (userId && orderType && outTradeNo) {
-            startPaymentPolling(userId, orderType, outTradeNo);
+            // startPaymentPolling(userId, orderType, outTradeNo);
+            console.log("wechat pay required headers:", { userId, orderType, outTradeNo });
         } else {
             console.error("Missing required headers:", { userId, orderType, outTradeNo });
             alert("Missing required payment information from server");
-            return "";
+            return null;
         }
 
-        return qrCodeUrl;
+        return [qrCodeUrl, userId, orderType, outTradeNo];
     } catch (error) {
         console.error('Failed to fetch wechat pay QR code:', error);
         alert(`Failed to fetch wechat pay QR code: ${error instanceof Error ? error.message : String(error)}`);
-        return "";
+        return null;
     }
 }
 
@@ -127,41 +131,125 @@ interface WechatPayModalProps {
     isOpen: boolean
     onClose: () => void
     payAmount: number
-    qrUrl: string | undefined
+    qrUrl: string[] | null
   }
   
 export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: WechatPayModalProps) {
-    if (!isOpen) return null
+  const [timeRemaining, setTimeRemaining] = useState(expire_time_seconds);
 
-    const modalContent = (
-      <>
-        <div className={`modal fade ${isOpen ? 'show' : ''}`} 
-             style={{ display: isOpen ? 'block' : 'none' }}>
-            <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-                <div className="modal-header">
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isOpen && qrUrl) {
+      // 重置计时器
+      setTimeRemaining(expire_time_seconds);
+      
+      // 每秒更新倒计时
+      timer = setInterval(async () => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            console.log('payment timeout');
+            // alert('payment timeout, page will refresh in 1 second...');
+            onClose(); // 时间到自动关闭
+            return 0;
+          }
+          
+          return prev - 1;
+        });
+        
+        try {
+          const response = await fetch(`${API_BASE_URL}/gen_img/query_payment_status`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  user_id: qrUrl[1], 
+                  order_type: qrUrl[2],
+                  out_trade_no: qrUrl[3]
+              })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+          
+          const result = await response.json();
+          
+          if (result.success) {
+              if (result.paid) {
+                  alert('payment success, page will refresh in 1 second...');
+                  onClose(); // 关闭模态框
+                  // setTimeout(() => {
+                  //     window.location.reload();
+                  // }, 1000);
+                  return;
+              } else {
+                  alert('payment failed, page will refresh in 1 second...');
+                  onClose(); // 关闭模态框
+                  // setTimeout(() => {
+                  //     window.location.reload();
+                  // }, 1000);
+                  return;
+              }
+          }
+          
+        } catch (error) {
+            console.error('轮询出错:', error);
+            alert('get payment result error');
+        }
+      }, 1000);
+    }
+
+    // 清理函数
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [isOpen, onClose]);  
+
+  // 格式化时间显示
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
+  
+  if (!isOpen || !qrUrl) return null
+
+  const modalContent = (
+    <>
+      <div className={`modal fade ${isOpen ? 'show' : ''}`} 
+            style={{ display: isOpen ? 'block' : 'none' }}>
+          <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+              <div className="modal-header">
                 <h5 className="modal-title text-center w-100">
                     <i className="fab fa-weixin me-2" style={{ color: '#07C160' }}></i>
-                    WeChat Payment
+                    WeChat Pay ￥{payAmount/100} CNY
                     <div className="small text-muted mt-2">Please complete payment within 15 minutes</div>
+                    {/* <div className="small mt-2">￥{payAmount/100} CNY</div> */}
                 </h5>
                 <button type="button" className="btn-close" onClick={onClose} aria-label="Close"></button>
-                </div>
-                <div className="modal-body text-center">
+                {/* <div className="small text-muted mt-2">Please complete payment within 15 minutes</div> */}
+              </div>
+              <div className="modal-body text-center">
                 <div className="qr-code-container">
-                    <img id="qrCodeImage" src={qrUrl} alt="QR Code" className="img-fluid mb-3" />
+                    <img id="qrCodeImage" src={qrUrl[0]} alt="QR Code" className="img-fluid mb-3" />
                     <div className="timer">
-                    <i className="far fa-clock me-1"></i>
-                    <span id="paymentTimer">15:00</span> remaining
+                      <i className="far fa-clock me-1"></i>
+                      <span id="paymentTimer">{formatTime(timeRemaining)}</span> remaining
                     </div>
                 </div>
-                </div>
-            </div>
-            </div>
-        </div>
-        {isOpen && (
-          <div className="modal-backdrop fade show"></div>
-        )}
+              </div>
+          </div>
+          </div>
+      </div>
+      {isOpen && (
+        <div className="modal-backdrop fade show"></div>
+      )}
 
         {/* Toast 消息 */}
       {/* <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>
