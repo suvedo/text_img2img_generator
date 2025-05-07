@@ -179,8 +179,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     e.preventDefault()
                     try {
                       const result = await signIn('github', { 
-                        callbackUrl: window.location.origin,
-                        redirect: false
+                        callbackUrl: window.location.href, //window.location.origin,
+                        redirect: true, //false
                       })
                       if (!result?.error) {
                         onClose()
@@ -199,8 +199,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     e.preventDefault()
                     try {
                       const result = await signIn('google', { 
-                        callbackUrl: window.location.origin,
-                        redirect: false
+                        callbackUrl: window.location.href, //window.location.origin,
+                        redirect: true, //false
                       })
                       if (!result?.error) {
                         onClose()

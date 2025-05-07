@@ -392,6 +392,15 @@ def signup():
 #     return user_account.logout(request_id, session)
 
 
+@app.route("/gen_img/oauth_callback", methods=["POST"])
+async def oauth_callback():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got oauth_callback request, request_id:{request_id}")
+    # 处理OAuth用户数据
+    data = request.get_json()
+    return user_account.oauth_callback(request_id, data, app.config['NEW_USER_FREE_CREDITS_COUNT'])
+
+
 @app.route('/gen_img/output/<path:filename>')
 def get_generated_image(filename):
     try:

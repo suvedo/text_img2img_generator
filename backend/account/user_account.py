@@ -106,3 +106,31 @@ def signup(request_id, data, session, new_user_credits):
         db.session.rollback()
         logger.error(f"request_id:{request_id}, email:{email}, password:{password}, error: {str(e)}")
         return jsonify(ok=False, msg="failed, try it later")
+    
+def oauth_callback(request_id, data, new_user_credits):
+    """
+    OAuth callback function
+    """
+    # 这里可以添加OAuth的逻辑
+    # 例如，获取用户信息，创建用户等
+    # 假设我们已经获取了用户的email和password
+    
+    email = data.get('email')
+    provider = data.get('provider')
+    if not User.query.filter_by(email=email).first():
+        # 创建新用户
+        try:
+            user = User(id=email, email=email, password_hash=provider)
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"request_id:{request_id}, email:{email}, error: {str(e)}")
+            return jsonify(msg="failed"), 500
+    
+    credit = user_credits_dao.get_user_credits(request_id, email, new_user_credits)
+    if credit is None \
+        and not user_credits_dao.add_user_credits(request_id, email, new_user_credits):
+        jsonify(msg="failed"), 500
+    
+    return jsonify(msg="ok"), 200
