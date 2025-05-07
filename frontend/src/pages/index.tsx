@@ -399,7 +399,7 @@ export default function Home() {
     // }
     if (payType === 1) {
       setIsGettingPricingQrCodeURL(true);
-      amount = 1;
+      amount = 790;
     } else if (payType === 2) {
       setIsGettingPricingQrCodeURL2(true);
       amount = 2190;

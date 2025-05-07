@@ -103,17 +103,14 @@ export async function  getQrCodeUrl(email: string, payAmount: number, payType: n
         
         const blob = await response.blob();
         const qrCodeUrl = URL.createObjectURL(blob);
-        console.log("Generated QR code URL:", qrCodeUrl);
+        // console.log("Generated QR code URL:", qrCodeUrl);
 
         const userId = response.headers.get('X-User-Id');
         const orderType = response.headers.get('X-Order-Type');
         const outTradeNo = response.headers.get('X-Order-Id');
-        console.log("Response headers:", { userId, orderType, outTradeNo });
+        // console.log("Response headers:", { userId, orderType, outTradeNo });
 
-        if (userId && orderType && outTradeNo) {
-            // startPaymentPolling(userId, orderType, outTradeNo);
-            console.log("wechat pay required headers:", { userId, orderType, outTradeNo });
-        } else {
+        if (!(userId && orderType && outTradeNo)) {
             console.error("Missing required headers:", { userId, orderType, outTradeNo });
             alert("Missing required payment information from server");
             return null;
@@ -179,15 +176,17 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
           
           if (result.success) {
               if (result.paid) {
-                  alert('payment success, page will refresh in 1 second...');
+                  alert('payment success, credits added');
                   onClose(); // 关闭模态框
+                  
                   // setTimeout(() => {
-                  //     window.location.reload();
+                  //     // window.location.reload();
                   // }, 1000);
                   return;
               } else {
-                  alert('payment failed, page will refresh in 1 second...');
+                  alert('payment failed');
                   onClose(); // 关闭模态框
+
                   // setTimeout(() => {
                   //     window.location.reload();
                   // }, 1000);
@@ -229,7 +228,7 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
                 <h5 className="modal-title text-center w-100">
                     <i className="fab fa-weixin me-2" style={{ color: '#07C160' }}></i>
                     WeChat Pay ￥{payAmount/100} CNY
-                    <div className="small text-muted mt-2">Please complete payment within 15 minutes</div>
+                    
                     {/* <div className="small mt-2">￥{payAmount/100} CNY</div> */}
                 </h5>
                 <button type="button" className="btn-close" onClick={onClose} aria-label="Close"></button>
@@ -238,7 +237,8 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
               <div className="modal-body text-center">
                 <div className="qr-code-container">
                     <img id="qrCodeImage" src={qrUrl[0]} alt="QR Code" className="img-fluid mb-3" />
-                    <div className="timer">
+                    <div className="text-muted mt-2">Please complete payment within 15 minutes</div>
+                    <div className="timer text-muted">
                       <i className="far fa-clock me-1"></i>
                       <span id="paymentTimer">{formatTime(timeRemaining)}</span> remaining
                     </div>
