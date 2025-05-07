@@ -1045,7 +1045,7 @@ export default function Home() {
                           <div className="pricing-item">
                               <div>
                                   <span className="price-amount">￥7.9</span>
-                                  <span className="price-times">[10 times]</span>
+                                  <span className="price-times">[10 credits]</span>
                                   {/* <span style={{ color: '#888', marginLeft: 4 }}>(10 times)</span> */}
                               </div>
                               <button 
@@ -1140,7 +1140,7 @@ export default function Home() {
                           <div className="pricing-item">
                               <div>
                                   <span className="price-amount">￥21.9</span>
-                                  <span className="price-times">[30 times]</span>
+                                  <span className="price-times">[30 credits]</span>
                               </div>
                               <button 
                                   className="purchase-button"
@@ -1234,7 +1234,7 @@ export default function Home() {
                           <div className="pricing-item">
                               <div>
                                   <span className="price-amount">￥33.9</span>
-                                  <span className="price-times">[50 times]</span>
+                                  <span className="price-times">[50 credits]</span>
                               </div>
                               <button 
                                   className="purchase-button"
@@ -1337,7 +1337,7 @@ export default function Home() {
                           <div className="pricing-item">
                             <div>
                                 <span className="price-amount">￥55.9</span>
-                                <span className="price-times">[100 times]</span>
+                                <span className="price-times">[100 credits]</span>
                             </div>
                             <button 
                                 className="purchase-button"

@@ -626,10 +626,10 @@ h1 {
 }
 
 .feature-list {
-    height: 280px; /* 设置固定高度 */
+    height: 450px; /* 设置固定高度 */
     overflow-y: auto; /* 启用垂直滚动 */
-    padding-right: 10px; /* 为滚动条预留空间 */
-    margin-top: 20px; /* 与上方价格和按钮保持距离 */
+    /*padding-right: 10px;  /*为滚动条预留空间 */
+    /*margin-top: 20px; /* 与上方价格和按钮保持距离 */
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
