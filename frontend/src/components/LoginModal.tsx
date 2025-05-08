@@ -13,7 +13,48 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [verifyCode, setVerifyCode] = useState('')
+  const [countdown, setCountdown] = useState(0)
   const [isSignUp, setIsSignUp] = useState(false)
+
+  const handleSendVerifyCode = async () => {
+    if (!email) {
+      alert('please input email')
+      return
+    }
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/gen_img/send_signup_verify_code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to_email: email
+        })
+      })
+  
+      if (response.ok) {
+        // 开始倒计时
+        setCountdown(60)
+        const timer = setInterval(() => {
+          setCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(timer)
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
+      } else {
+        // const data = await response.json()
+        alert(`send verify code error`)
+      }
+    } catch (error) {
+      console.error('send verify code error: ', error)
+      alert('send verify code failed, please try it later')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +73,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           body: JSON.stringify({
             email: email,
             password: password,
+            verify_code: verifyCode,
           }),
         })
   
@@ -42,7 +84,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           setIsSignUp(false)
           setPassword('')
         } else {
-          alert(`An error occurred during signup:${data.msg}`)
+          if (data.msg === 'verify code is invalid') {
+            alert(`verify code is invalid or expired`)
+          } else {
+            alert(`An error occurred during signup: ${data.msg}`)
+          }
         }
       } catch (error) {
         console.log('signup error:', error)
@@ -128,6 +174,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     id="loginEmail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
                     required
                   />
                 </div>
@@ -139,6 +186,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     id="loginPassword"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
                     required
                   />
                 </div>
@@ -151,10 +199,43 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                       id="confirmPassword"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm your password"
                       required
                     />
                   </div>
                 )}
+                {isSignUp && (
+                  <div className="mb-3">
+                  <label htmlFor="verifyCode" className="form-label">Verify Code</label>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="verifyCode"
+                      value={verifyCode}
+                      onChange={(e) => setVerifyCode(e.target.value)}
+                      placeholder="Enter verification code"
+                      required
+                      style={{ borderRadius: '4px 0 0 4px' }}
+                    />
+                    <button 
+                      className={`btn ${countdown > 0 ? 'btn-secondary' : 'btn-primary'}`}
+                      type="button"
+                      onClick={handleSendVerifyCode}
+                      disabled={countdown > 0}
+                      style={{
+                        marginLeft: '8px',
+                        minWidth: '120px',
+                        borderRadius: '4px',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      {countdown > 0 ? `${countdown}s` : 'Send Code'}
+                    </button>
+                  </div>
+                </div>
+                )}
+
                 <button type="submit" className="btn btn-primary w-100 mb-2">
                   {isSignUp ? 'Sign up' : 'Log in'}
                 </button>

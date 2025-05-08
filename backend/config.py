@@ -74,6 +74,17 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_generator'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# redis配置
+REDIS_URL = "redis://localhost:6379"
+REDIS_SINGUP_VERIFY_KEY_PREFIX = "SINGUP_VERIFY_KEY_"
+
+# smpt配置
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USER = "pixelmyth.shop@gmail.com"
+SMTP_PASS = "pxvtxqxlbdyqhxac"
+#SMTP_PASS = "zuehawbtlppubbfh"
+
 # 小于KOLORS_OR_GPT_THRES时，使用Kolors Huggingface Space，否则使用GPT
 KOLORS_OR_GPT_THRES = 0.5
 
@@ -137,3 +148,5 @@ PAY_TYPE2_CREDIT_NUM_DICT = {
 CONSUME_CREDITS_CNT_PER_GENERATION = 1
 # 用户注册后有10个免费credit
 NEW_USER_FREE_CREDITS_COUNT = 10
+
+
