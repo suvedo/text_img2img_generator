@@ -402,7 +402,7 @@ export default function Home() {
       amount = 790;
     } else if (payType === 2) {
       setIsGettingPricingQrCodeURL2(true);
-      amount = 2190;
+      amount = 1;
     } else if (payType === 3) {
       setIsGettingPricingQrCodeURL3(true);
       amount = 3390;

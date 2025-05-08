@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef} from 'react'
 import { createPortal } from 'react-dom'
 import { Toast } from 'bootstrap'
 import { useSession } from 'next-auth/react'
@@ -133,83 +133,76 @@ interface WechatPayModalProps {
   
 export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: WechatPayModalProps) {
   const [timeRemaining, setTimeRemaining] = useState(expire_time_seconds);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 倒计时函数
+  const countdown = (currentTime: number) => {
+    if (currentTime <= 0) {
+      alert('payment timeout');
+      onClose();
+      return;
+    }
+
+    // 更新显示时间
+    setTimeRemaining(currentTime);
+    queryPaymentStatus();
+    
+    // 递归调用
+    timeoutRef.current = setTimeout(() => {
+      countdown(currentTime - 1);
+    }, 1000);
+  };
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
     if (isOpen && qrUrl) {
-      // 重置计时器
+      // 开始倒计时
       setTimeRemaining(expire_time_seconds);
-      
-      // 每秒更新倒计时
-      timer = setInterval(async () => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            console.log('payment timeout');
-            // alert('payment timeout, page will refresh in 1 second...');
-            onClose(); // 时间到自动关闭
-            return 0;
-          }
-          
-          return prev - 1;
-        });
-        
-        try {
-          const response = await fetch(`${API_BASE_URL}/gen_img/query_payment_status`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                  user_id: qrUrl[1], 
-                  order_type: qrUrl[2],
-                  out_trade_no: qrUrl[3]
-              })
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-          }
-          
-          const result = await response.json();
-          
-          if (result.success) {
-              if (result.paid) {
-                  alert('payment success, credits added');
-                  onClose(); // 关闭模态框
-                  
-                  // setTimeout(() => {
-                  //     // window.location.reload();
-                  // }, 1000);
-                  return;
-              } else {
-                  alert('payment failed');
-                  onClose(); // 关闭模态框
-
-                  // setTimeout(() => {
-                  //     window.location.reload();
-                  // }, 1000);
-                  return;
-              }
-          }
-          
-        } catch (error) {
-            console.error('轮询出错:', error);
-            alert('get payment result error');
-        }
-      }, 1000);
+      countdown(expire_time_seconds);
     }
 
     // 清理函数
     return () => {
-      if (timer) {
-        clearInterval(timer);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
-  }, [isOpen, onClose]);  
+  }, [isOpen, qrUrl]);
 
-  // 格式化时间显示
+  // 查询支付状态的函数
+  const queryPaymentStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/gen_img/query_payment_status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: qrUrl?.[1],
+          order_type: qrUrl?.[2],
+          out_trade_no: qrUrl?.[3]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        if (result.paid) {
+          alert('payment success, credits added');
+        } else {
+          alert('payment failed');
+        }
+        onClose();
+      }
+      
+    } catch (error) {
+      console.error('poll error:', error);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
