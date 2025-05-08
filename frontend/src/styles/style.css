@@ -578,6 +578,7 @@ h1 {
 .pricing-item {
     display: flex;
     flex-direction: column;
+    height: 100%;
     gap: 0.5rem;
     padding: 1rem;
     border-radius: 12px;
@@ -625,7 +626,10 @@ h1 {
 }
 
 .feature-list {
-    margin-top: 1rem;
+    height: 450px; /* 设置固定高度 */
+    overflow-y: auto; /* 启用垂直滚动 */
+    /*padding-right: 10px;  /*为滚动条预留空间 */
+    /*margin-top: 20px; /* 与上方价格和按钮保持距离 */
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -633,8 +637,8 @@ h1 {
 .feature-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
+    gap: 8px;
+    padding: 6px 0;
     color: var(--secondary-color);
     font-size: 0.9rem;
 }

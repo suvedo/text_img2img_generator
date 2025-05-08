@@ -130,6 +130,24 @@ export const authOptions: AuthOptions = {
         credentials?: Record<string, any> | null 
       }) {
         try {
+          if (account?.provider === 'github' || account?.provider === 'google') {
+            const response = await fetch(`${API_BASE_URL}/gen_img/oauth_callback`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: user.email,
+                name: user.name,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId
+              })
+            })
+  
+            if (!response.ok) {
+              throw new Error('Failed to register OAuth user')
+            }
+          }
           return true
         } catch (error) {
           console.error('Sign in error:', error)

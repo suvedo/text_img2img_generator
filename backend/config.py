@@ -74,8 +74,19 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_generator'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# redis配置
+REDIS_URL = "redis://localhost:6379"
+REDIS_SINGUP_VERIFY_KEY_PREFIX = "SINGUP_VERIFY_KEY_"
+
+# smpt配置
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USER = "pixelmyth.shop@gmail.com"
+SMTP_PASS = "pxvtxqxlbdyqhxac"
+#SMTP_PASS = "zuehawbtlppubbfh"
+
 # 小于KOLORS_OR_GPT_THRES时，使用Kolors Huggingface Space，否则使用GPT
-KOLORS_OR_GPT_THRES = 1.1
+KOLORS_OR_GPT_THRES = 0.5
 
 # Kolors Huggingface Space配置
 KOLORS_HF_UPLOAD_IMG_URL = "https://kwai-kolors-kolors-portrait-with-flux.hf.space/gradio_api/upload" #?upload_id=" + upload_id
@@ -116,7 +127,7 @@ WECHAT_PAY_NATIVE_DNS = "https://api.mch.weixin.qq.com"
 WECHAT_PAY_NATIVE_PATH = "/v3/pay/transactions/native"
 WECHAT_PAY_APPID = "wxd89feb871d5d61fd" # 公众账号ID
 WECHAT_PAY_MCHID = "1713859721" # 商户号
-WECHAT_PAY_DISCRIPTION = "Image Creation" # 商品描述
+WECHAT_PAY_DISCRIPTION = "pixelmyth" # 商品描述
 WECHAT_PAY_NOTIFY_URL = "http://"+IP+":8000/wechat_pay_callback" #"https://www.weixin.qq.com/wxpay/pay.php"
 # WECHAT_PAY_AMOUNT = "1-CNY"  # 金额单位为：分
 WECHAT_PAY_PEM_PATH = "third_party/apiclient_key.pem"  # 商户私钥文件路径
@@ -137,3 +148,5 @@ PAY_TYPE2_CREDIT_NUM_DICT = {
 CONSUME_CREDITS_CNT_PER_GENERATION = 1
 # 用户注册后有10个免费credit
 NEW_USER_FREE_CREDITS_COUNT = 10
+
+

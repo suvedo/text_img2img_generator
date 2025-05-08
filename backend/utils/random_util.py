@@ -7,3 +7,7 @@ def generate_random_str(length=10):
 
 def generate_random_from0to1():
     return random.random()
+
+# 生成6位数字验证码
+def generate_verify_code():
+    return str(random.randint(100000, 999999))

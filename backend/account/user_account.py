@@ -3,6 +3,7 @@ import re
 
 from database.user_dao import User, db
 from database import user_credits_dao
+from database.redis_client import RedisClient
 from utils.log_util import logger
 
 
@@ -67,7 +68,7 @@ def logout(request_id, session):
         return jsonify(ok=False, msg='user not logged in')
 
 
-def signup(request_id, data, session, new_user_credits):
+def signup(request_id, data, session, redis_prefix, new_user_credits):
     email = data.get('email')
     password = data.get('password')
 
@@ -89,6 +90,12 @@ def signup(request_id, data, session, new_user_credits):
     # 检查邮箱是否已被注册
     if User.query.filter_by(email=email).first():
         return jsonify(ok=False, msg="email has been registered")
+    
+    verify_code = data.get('verify_code').strip()
+    redis_verify_code = RedisClient.get(redis_prefix + email)
+    if verify_code is not None and redis_verify_code != verify_code:
+        logger.error(f"request_id:{request_id}, email:{email},  verify_code:{verify_code}, redis_verify_code:{redis_verify_code}")
+        return jsonify(ok=False, msg="verify code is invalid")
 
     # 创建新用户
     try:
@@ -106,3 +113,31 @@ def signup(request_id, data, session, new_user_credits):
         db.session.rollback()
         logger.error(f"request_id:{request_id}, email:{email}, password:{password}, error: {str(e)}")
         return jsonify(ok=False, msg="failed, try it later")
+    
+def oauth_callback(request_id, data, new_user_credits):
+    """
+    OAuth callback function
+    """
+    # 这里可以添加OAuth的逻辑
+    # 例如，获取用户信息，创建用户等
+    # 假设我们已经获取了用户的email和password
+    
+    email = data.get('email')
+    provider = data.get('provider')
+    if not User.query.filter_by(email=email).first():
+        # 创建新用户
+        try:
+            user = User(id=email, email=email, password_hash=provider)
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"request_id:{request_id}, email:{email}, error: {str(e)}")
+            return jsonify(msg="failed"), 500
+    
+    credit = user_credits_dao.get_user_credits(request_id, email, new_user_credits)
+    if credit is None \
+        and not user_credits_dao.add_user_credits(request_id, email, new_user_credits):
+        jsonify(msg="failed"), 500
+    
+    return jsonify(msg="ok"), 200

@@ -1,4 +1,4 @@
-import os
+import os, re
 from datetime import datetime
 from flask import Flask, render_template, request, \
     jsonify, send_file, session, Blueprint, send_from_directory, make_response
@@ -10,15 +10,18 @@ import traceback
 import random
 import io
 import asyncio
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
 import third_party.kolors_hf_req as kolors_hf_req
 import third_party.gpt_gen_img_req as gpt_gen_img_req
 import third_party.wechat_pay as wechat_pay
 from utils.log_util import logger
 from utils import random_util
-from utils import qr_util
+from utils import qr_util, email_util
 from database import payment_state_dao, user_credits_dao, user_creation_dao
 from database.db_model import db
+from database.redis_client import RedisClient
 from account import user_account
 
 app = Flask(__name__)
@@ -26,7 +29,7 @@ CORS(app, resources={
     r"/gen_img/*": {
         "origins": [
             "http://localhost:3000",  # 开发环境
-            "http://207.148.19.172:3000"  # 生产环境
+            "https://pixelmyth.shop"  # 生产环境
         ],
         "methods": ["GET", "POST"],
         "allow_headers": ["Content-Type", "Accept"],
@@ -38,12 +41,17 @@ CORS(app, resources={
 app.config.from_pyfile('config.py')
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
+load_dotenv()
+
 # 初始化数据库
 db.init_app(app)
 
 # 创建数据库表
 with app.app_context():
     db.create_all()
+
+# 初始化redis client
+RedisClient.init_client(app.config['REDIS_URL'])
 
 # 确保上传和输出目录存在
 os.makedirs(os.path.join(app.config['BASE_DIR'], app.config['UPLOAD_FOLDER']), exist_ok=True)
@@ -346,8 +354,8 @@ def query_payment_status():
         order_type = data.get('order_type')
         out_trade_no = data.get('out_trade_no')
         
-        # logger.info(f"request_id:{request_id}, got payment status request, " \
-        #             f"user_id:{user_id}, order_type:{order_type}, out_trade_no:{out_trade_no}")
+        logger.info(f"request_id:{request_id}, got payment status request, " \
+                    f"user_id:{user_id}, order_type:{order_type}, out_trade_no:{out_trade_no}")
         
         st = payment_state_dao.get_payment_state(request_id, user_id, order_type, out_trade_no)
         if st is None:
@@ -383,13 +391,59 @@ def signup():
     request_id = random_util.generate_random_str(16)
     logger.info(f"got signup request, request_id:{request_id}")
     data = request.get_json()
-    return user_account.signup(request_id, data, session, app.config['NEW_USER_FREE_CREDITS_COUNT'])
+    return user_account.signup(request_id, data, session, \
+                            app.config['REDIS_SINGUP_VERIFY_KEY_PREFIX'], \
+                            app.config['NEW_USER_FREE_CREDITS_COUNT'])
 
 # @app.route('/api/logout', methods=['POST'])
 # def logout():
 #     request_id = random_util.generate_random_str(16)
 #     logger.info(f"got logout request, request_id:{request_id}")
 #     return user_account.logout(request_id, session)
+
+
+@app.route("/gen_img/oauth_callback", methods=["POST"])
+def oauth_callback():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got oauth_callback request, request_id:{request_id}")
+    # 处理OAuth用户数据
+    data = request.get_json()
+    return user_account.oauth_callback(request_id, data, app.config['NEW_USER_FREE_CREDITS_COUNT'])
+
+
+@app.route('/gen_img/send_signup_verify_code', methods=['POST'])
+def send_signup_verify_code():
+    request_id = random_util.generate_random_str(16)
+    logger.info(f"got send_signup_verify_code request, request_id:{request_id}")
+
+    data = request.get_json()
+    to_email = data.get('to_email')
+    logger.info(f"request_id:{request_id}, to_email:{to_email}")
+    
+    # 邮箱格式验证
+    if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', to_email):
+        logger.info(f"request_id:{request_id}, email format error: {to_email}")
+        return jsonify(msg = "email format error"), 500
+    
+    # 生成并存储验证码（5分钟过期）
+    code = random_util.generate_verify_code()
+    RedisClient.set(app.config['REDIS_SINGUP_VERIFY_KEY_PREFIX'] + to_email, code, 300)  # 网页9/10/11的Redis操作
+    
+    # 发送邮件
+    msg = MIMEText(f"Your verify code is: {code}, expire in 5 minutes.")
+    msg['From'] = app.config['SMTP_USER']
+    msg['To'] = to_email
+    msg['Subject'] = "pixelmyth signup verify code"
+    msg = msg.as_string()
+    if email_util.send_email(request_id, app.config['SMTP_HOST'], \
+                            app.config['SMTP_PORT'], \
+                            app.config['SMTP_USER'], \
+                            app.config['SMTP_PASS'], \
+                            to_email, \
+                            msg):
+        return jsonify(msg = "send email success"), 200
+    else:
+        return jsonify(msg = "send email error"), 500
 
 
 @app.route('/gen_img/output/<path:filename>')
