@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { API_BASE_URL } from '../config'
+import { NotifyToast } from './NotifyToast'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -17,9 +18,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [countdown, setCountdown] = useState(0)
   const [isSignUp, setIsSignUp] = useState(false)
 
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('warning');
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' = 'warning') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
+
   const handleSendVerifyCode = async () => {
     if (!email) {
-      alert('please input email')
+      showNotification('please input email', 'warning')
       return
     }
   
@@ -48,18 +58,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }, 1000)
       } else {
         // const data = await response.json()
-        alert(`send verify code error`)
+        showNotification(`send verify code error`, 'error')
       }
     } catch (error) {
-      console.error('send verify code error: ', error)
-      alert('send verify code failed, please try it later')
+      // console.error('send verify code error: ', error)
+      showNotification('send verify code failed, please try it later', 'error')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSignUp && password !== confirmPassword) {
-      alert('Passwords do not match')
+      showNotification('Passwords do not match', 'warning')
       return
     }
 
@@ -80,19 +90,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         const data = await res.json()
   
         if (data.ok) {
-          alert('signup ok, signin please')
+          showNotification('signup ok, signin please', 'success')
           setIsSignUp(false)
           setPassword('')
         } else {
           if (data.msg === 'verify code is invalid') {
-            alert(`verify code is invalid or expired`)
+            showNotification(`verify code is invalid or expired`, 'warning')
           } else {
-            alert(`An error occurred during signup: ${data.msg}`)
+            showNotification(`An error occurred during signup: ${data.msg}`, 'error')
           }
         }
       } catch (error) {
-        console.log('signup error:', error)
-        alert(`An error occurred during signup:${error}`)
+        // console.log('signup error:', error)
+        showNotification(`An error occurred during signup:${error}`, 'error')
       }
       
     } else {
@@ -104,13 +114,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         })
         
         if (result?.error) {
-          alert(result.error)
+          showNotification(result.error, 'error')
         } else {
           onClose()
         }
       } catch (error) {
-        console.error('Login error:', error)
-        alert('An error occurred during login')
+        // console.error('Login error:', error)
+        showNotification('An error occurred during login', 'error')
       }
     }
   }
@@ -299,6 +309,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
         </div>
       </div>
+
+      <NotifyToast 
+        show={showToast}
+        message={toastMessage}
+        type={toastType}
+        onClose={() => setShowToast(false)}
+      />
     </>
   )
 

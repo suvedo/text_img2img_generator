@@ -11,6 +11,7 @@ import Footer from '../components/Footer'
 import WechatPayModal from '../components/WechatPay'
 import { getQrCodeUrl } from '../components/WechatPay'
 import { API_BASE_URL } from '../config'
+import { NotifyToast } from '../components/NotifyToast'
 
 
 export default function Home() {
@@ -44,6 +45,15 @@ export default function Home() {
 
   // Add new state for case filtering
   const [selectedPromptId, setSelectedPromptId] = useState<number | null>(null);
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('warning');
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' = 'warning') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
 
   // 模板数据
   // const promptTemplates = [
@@ -315,8 +325,8 @@ export default function Home() {
 
   // 监听session状态变化，当session加载完成时刷新用户创作区域
   useEffect(() => {
-    console.log("debug status:", status)
-    console.log("debug session:", session)
+    // console.log("debug status:", status)
+    // console.log("debug session:", session)
     if (status === 'authenticated' && session?.user?.email) {
       refresh_user_creation_area()
     }
@@ -358,14 +368,14 @@ export default function Home() {
         if (data.success) {
           setUploadImageFileName(data.file_path)
         } else {
-          alert('Failed to upload image: ' + data.message)
+          showNotification('Failed to upload image: ' + data.message, 'error')
         }
       } catch (error) {
-        console.error('Error uploading image:', error)
-        alert('Error uploading image: ' + error)
+        // console.error('Error uploading image:', error)
+        showNotification('Error uploading image: ' + error, 'error')
       }
     } else {
-      alert('no image to upload')
+      showNotification('no image to upload', 'warning');
     }
   }
 
@@ -421,11 +431,11 @@ export default function Home() {
         setQrCodeUrl(ret)
         setPayAmount(amount)
         setIsWechatPayModalOpen(true)
-      // } else {
-      //   alert("get wechat pay qr failed")
+      } else {
+        showNotification("Failed to get wechat pay qr", 'error')
       }
     } catch (error) {
-      alert("get wechat pay qr error")
+      showNotification("Get wechat pay qr error", 'error')
     } finally {
       if (payType === 1) {
         setIsGettingPricingQrCodeURL(false)
@@ -509,14 +519,14 @@ export default function Home() {
       const creation_list = data.user_creation || []
       setUserCreationList(creation_list)
     } catch (error) {
-      console.error("get user creation failed:", error)
+      // console.error("get user creation failed:", error)
       setUserCreationList([])
     }
   }
 
   const handleSubmit = async () => {
     if (!uploadImageFileName || !prompt) {
-      alert('Please upload an image and enter a prompt')
+      showNotification('Please upload an image and enter a prompt', 'warning');
       return
     }
 
@@ -578,12 +588,12 @@ export default function Home() {
         } else if (!data.isAuthenticated) {
           setIsLoginModalOpen(true);
         } else {
-          console.error("Generate image failed:", data.message);
-          alert('Failed to generate image: ' + data.message);
+          // console.error("Generate image failed:", data.message);
+          showNotification('Failed to generate image: ' + data.message, 'error');
         }
     } catch (error) {
-      console.error('Error during image generation:', error);
-      alert('Error during image generation:' + error)
+      // console.error('Error during image generation:', error);
+      showNotification('Error during image generation:' + error, 'error')
     } finally {
       setIsGenerating(false);
     }
@@ -594,7 +604,7 @@ export default function Home() {
       // const filename = generatedImagePath.split('/').pop()
       window.open(`${API_BASE_URL}/gen_img/download/${generatedImagePath}`, '_blank')
     } else {
-      alert('no image to download')
+      showNotification('no image to download', 'warning');
     }
   }
 
@@ -1485,6 +1495,12 @@ export default function Home() {
       {showImageModal && (
         <div className="modal-backdrop fade show"></div>
       )}
+      <NotifyToast 
+        show={showToast}
+        message={toastMessage}
+        type={toastType}
+        onClose={() => setShowToast(false)}
+      />
     </>
   )
 }
