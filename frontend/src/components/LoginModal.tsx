@@ -219,7 +219,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                       style={{ borderRadius: '4px 0 0 4px' }}
                     />
                     <button 
-                      className={`btn ${countdown > 0 ? 'btn-secondary' : 'btn-primary'}`}
+                      className={`btn ${countdown > 0 ? 'btn-secondary' : 'btn-outline-primary'}`}
                       type="button"
                       onClick={handleSendVerifyCode}
                       disabled={countdown > 0}

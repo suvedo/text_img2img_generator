@@ -601,7 +601,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Pixel Myth</title>
+        <title>Pixel Myth Dress Up Your Photos As Game Characters</title>
         <link rel="icon" href="/images/logo.png" type="image/png" />
       </Head>
       <Navbar />
