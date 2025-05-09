@@ -11,7 +11,7 @@ import random
 import io
 import asyncio
 from email.mime.text import MIMEText
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 import third_party.kolors_hf_req as kolors_hf_req
 import third_party.gpt_gen_img_req as gpt_gen_img_req
@@ -41,7 +41,7 @@ CORS(app, resources={
 app.config.from_pyfile('config.py')
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-load_dotenv()
+#load_dotenv()
 
 # 初始化数据库
 db.init_app(app)
