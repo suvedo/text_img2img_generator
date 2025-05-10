@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
           <div className="col-md-4">
             <h5>Follow Us</h5>
             <div className="social-links">
-              <a href="#" className="me-2"><i className="fab fa-weixin"></i></a>
+              <a href="#" className="me-2"><i className="fab fa-twitter"></i></a>
               <a href="#" className="me-2"><i className="fab fa-facebook"></i></a>
               <a href="#" className="me-2"><i className="fab fa-github"></i></a>
             </div>
