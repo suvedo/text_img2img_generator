@@ -4,6 +4,9 @@ import socket
 
 from utils.random_util import generate_random_str
 
+env = os.getenv('ENVIRONMENT', 'development')
+print(f"当前环境: {env}")
+
 def get_public_ip():
     """
     获取公网IPv4地址，使用多个备选API
@@ -71,7 +74,13 @@ SECRET_KEY = generate_random_str(24)
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
 
 # Database configuration
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_generator'
+# mysql
+# SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:12345678@localhost/text_img2img_generator'
+# hosted neon
+if env == 'production':
+    SQLALCHEMY_DATABASE_URI = 'postgresql://text_img2img_generator_owner:npg_bkVG7n3YWrfA@ep-delicate-violet-a4biuyol-pooler.us-east-1.aws.neon.tech/text_img2img_generator?sslmode=require'
+else:
+    SQLALCHEMY_DATABASE_URI = 'postgresql://text_img2img_generator_owner:npg_bkVG7n3YWrfA@ep-shy-pond-a49k6ay2-pooler.us-east-1.aws.neon.tech/text_img2img_generator?sslmode=require'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # redis配置

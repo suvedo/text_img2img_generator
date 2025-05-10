@@ -175,6 +175,8 @@ export const authOptions: AuthOptions = {
     }
   },
 
+  secret: process.env.NEXTAUTH_SECRET,
+
   pages: {
     signIn: '/auth/signin', // 自定义登录页面路径
     error: '/auth/error', // 错误页面

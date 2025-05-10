@@ -108,6 +108,7 @@ def signup(request_id, data, session, redis_prefix, new_user_credits):
         db.session.add(credit)
 
         db.session.commit()
+        logger.info(f"request_id:{request_id}, email:{email}, password:{password}, signup successful")
         return jsonify(ok=True, msg="sign up successful")
     except Exception as e:
         db.session.rollback()

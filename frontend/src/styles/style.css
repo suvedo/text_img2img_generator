@@ -594,6 +594,7 @@ h1 {
 
 .price-times {
     font-size: 0.9rem;
+    font-weight: bold;
     color: var(--secondary-color);
     padding-left: 10px;
 }
@@ -675,3 +676,14 @@ html {
     box-shadow: var(--glass-shadow);
     border: none;
 }
+
+@keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }

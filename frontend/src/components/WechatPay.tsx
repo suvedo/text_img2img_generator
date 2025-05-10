@@ -4,7 +4,7 @@ import { Toast } from 'bootstrap'
 import { useSession } from 'next-auth/react'
 
 import { API_BASE_URL } from '../config'
-import { on } from 'events'
+import { NotifyToast } from './NotifyToast'
 
 declare const bootstrap: {
   Toast: typeof Toast;
@@ -78,7 +78,7 @@ const expire_time_seconds = 15 * 60; // 二维码过期时间，转换为秒
 
 export async function  getQrCodeUrl(email: string, payAmount: number, payType: number): Promise<string[] | null> {
     try {
-        console.log("Fetching QR code for amount:", payAmount);
+        // console.log("Fetching QR code for amount:", payAmount);
         const formData = new FormData();
         formData.append('user', JSON.stringify({
             email: email,
@@ -92,12 +92,12 @@ export async function  getQrCodeUrl(email: string, payAmount: number, payType: n
             method: 'POST',
             body: formData
         });
-        console.log("Response status:", response.status);
+        // console.log("Response status:", response.status);
         
         if (!response.ok) {
             const errorText = response.text();
             console.error("Error response:", errorText);
-            alert(`Failed to load wechat pay QR code. Status: ${response.status}, Error: ${errorText}`);
+            // alert(`Failed to load wechat pay QR code. Status: ${response.status}, Error: ${errorText}`);
             return null;
         }
         
@@ -112,14 +112,14 @@ export async function  getQrCodeUrl(email: string, payAmount: number, payType: n
 
         if (!(userId && orderType && outTradeNo)) {
             console.error("Missing required headers:", { userId, orderType, outTradeNo });
-            alert("Missing required payment information from server");
+            // alert("Missing required payment information from server");
             return null;
         }
 
         return [qrCodeUrl, userId, orderType, outTradeNo];
     } catch (error) {
         console.error('Failed to fetch wechat pay QR code:', error);
-        alert(`Failed to fetch wechat pay QR code: ${error instanceof Error ? error.message : String(error)}`);
+        // alert(`Failed to fetch wechat pay QR code: ${error instanceof Error ? error.message : String(error)}`);
         return null;
     }
 }
@@ -134,6 +134,15 @@ interface WechatPayModalProps {
 export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: WechatPayModalProps) {
   const [timeRemaining, setTimeRemaining] = useState(expire_time_seconds);
 
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('warning');
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' = 'warning') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -146,7 +155,7 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
         setTimeRemaining(prev => {
           if (prev <= 1) {
             clearInterval(timer);
-            console.log('payment timeout');
+            console.log('debug: payment timeout');
             // alert('payment timeout, page will refresh in 1 second...');
             onClose(); // 时间到自动关闭
             return 0;
@@ -176,7 +185,7 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
           
           if (result.success) {
               if (result.paid) {
-                  alert('payment success, credits added');
+                  showNotification('payment success, credits added', 'success');
                   onClose(); // 关闭模态框
                   
                   // setTimeout(() => {
@@ -184,7 +193,7 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
                   // }, 1000);
                   return;
               } else {
-                  alert('payment failed');
+                  showNotification('payment failed', 'error');
                   onClose(); // 关闭模态框
 
                   // setTimeout(() => {
@@ -195,8 +204,8 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
           }
           
         } catch (error) {
-            console.error('轮询出错:', error);
-            alert('get payment result error');
+            // console.error('轮询出错:', error);
+            showNotification('get payment result error', 'error');
         }
       }, 1000);
     }
@@ -250,6 +259,13 @@ export default function WechatPayModal({ isOpen, onClose, payAmount, qrUrl}: Wec
       {isOpen && (
         <div className="modal-backdrop fade show"></div>
       )}
+
+      <NotifyToast 
+        show={showToast}
+        message={toastMessage}
+        type={toastType}
+        onClose={() => setShowToast(false)}
+      />
 
         {/* Toast 消息 */}
       {/* <div className="toast-container position-fixed top-50 start-50 translate-middle" style={{ zIndex: 9999 }}>

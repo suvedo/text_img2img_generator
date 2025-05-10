@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export ENVIRONMENT="production"
+
 # 检查是否已有 python3 app.py 或 python app.py 进程在运行
 existing_pids=$(ps aux | grep -E "python(3)? app.py" | grep -v grep | awk '{print $2}')
 
