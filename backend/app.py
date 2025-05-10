@@ -29,6 +29,7 @@ CORS(app, resources={
     r"/gen_img/*": {
         "origins": [
             "http://localhost:3000",  # 开发环境
+            "http://127.0.0.1:3000",  # 开发环境
             "https://pixelmyth.shop"  # 生产环境
         ],
         "methods": ["GET", "POST"],

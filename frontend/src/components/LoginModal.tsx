@@ -114,7 +114,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         })
         
         if (result?.error) {
-          showNotification(result.error, 'error')
+          showNotification(`log in error: ${result.error}`, 'error')
         } else {
           onClose()
         }
